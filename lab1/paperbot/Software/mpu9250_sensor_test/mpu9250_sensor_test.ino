@@ -106,7 +106,8 @@ void loop()
   int16_t mx=(Mag[1]<<8 | Mag[0]);
   int16_t my=(Mag[3]<<8 | Mag[2]);
   int16_t mz=(Mag[5]<<8 | Mag[4]);
-
+  
+  // arc tangent of y/x 
   float heading = atan2(mx, my);
 
   // Once you have your heading, you must then add your 'Declination Angle',
