@@ -26,6 +26,10 @@
 #define SDA_PORT 14
 #define SCL_PORT 12
 
+//calibrating variables
+float magCalibration[3], mRes, mag_scale[3], mag_bias[3];
+
+
 // This function read Nbytes bytes from I2C device at address Address. 
 // Put read bytes starting at register Register in the Data array. 
 void I2Cread(uint8_t Address, uint8_t Register, uint8_t Nbytes, uint8_t* Data)
@@ -53,7 +57,6 @@ void I2CwriteByte(uint8_t Address, uint8_t Register, uint8_t Data)
   Wire.endTransmission();
 }
 
-
 // Initializations
 void setup()
 {
@@ -66,7 +69,85 @@ void setup()
   
   // Request first magnetometer single measurement
   I2CwriteByte(MAG_ADDRESS,0x0A,0x01);
+  
+  
+   magCalibration[0] =  (float)(mx - 128)/256.0f + 1.0f;
+   magCalibration[1] =  (float)(my - 128)/256.0f + 1.0f;  
+   magCalibration[2] =  (float)(mz - 128)/256.0f + 1.0f;
+  
+   // 16 bits registers - 10.0f*4912.0f/8190.0f
+   mRes = 10.0f*4912.0f/8190.0f;
+  
+  uint16_t ii = 0, sample_count = 0;
+  int16_t mag_max[3] = {-32767, -32767, -32767}, mag_min[3] = {32767, 32767, 32767};
 
+  delay(4000);
+  
+// shoot for ~fifteen seconds of mag data
+  /*
+  if(_Mmode == 0x02) sample_count = 128;  // at 8 Hz ODR, new mag data is available every 125 ms
+  if(_Mmode == 0x06) sample_count = 1500;  // at 100 Hz ODR, new mag data is available every 10 ms
+  */ 
+  //assume at 100 Hz ODR, new mag data is available every 10 ms
+  sample_count = 1500;
+  for(ii = 0; ii < sample_count; ii++) {
+    // :::  Magnetometer ::: 
+
+  // Request first magnetometer single measurement
+  I2CwriteByte(MAG_ADDRESS,0x0A,0x01);
+  
+  // Read register Status 1 and wait for the DRDY: Data Ready
+  
+  uint8_t ST1;
+  do
+  {
+    I2Cread(MAG_ADDRESS,0x02,1,&ST1);
+  }
+  while (!(ST1&0x01));
+
+  // Read magnetometer data  
+  uint8_t Mag_temp[7];  
+  I2Cread(MAG_ADDRESS,0x03,7,Mag_temp[); // Read the x-, y-, and z-axis calibration values
+    
+      // Magnetometer
+  int16_t mag_temp[0]=(Mag_temp[1]<<8 | Mag_temp[0]);
+  int16_t mag_temp[1]=(Mag_temp[[3]<<8 | Mag_temp[[2]);
+  int16_t mag_temp[2]=(Mag_temp[[5]<<8 | Mag_temp[[4]);
+    
+    for (int jj = 0; jj < 3; jj++) {
+      if(mag_temp[jj] > mag_max[jj]) mag_max[jj] = mag_temp[jj];
+      if(mag_temp[jj] < mag_min[jj]) mag_min[jj] = mag_temp[jj];
+    }
+    delay(100);
+ }
+
+    Serial.println("mag x min/max:"); Serial.println(mag_max[0]); Serial.println(mag_min[0]);
+    Serial.println("mag y min/max:"); Serial.println(mag_max[1]); Serial.println(mag_min[1]);
+    Serial.println("mag z min/max:"); Serial.println(mag_max[2]); Serial.println(mag_min[2]);
+
+    // Get hard iron correction
+    mag_bias[0]  = (mag_max[0] + mag_min[0])/2;  // get average x mag bias in counts
+    mag_bias[1]  = (mag_max[1] + mag_min[1])/2;  // get average y mag bias in counts
+    mag_bias[2]  = (mag_max[2] + mag_min[2])/2;  // get average z mag bias in counts
+
+    mag_bias[0] = (float) mag_bias[0]*mRes*magCalibration[0];  // save mag biases in G for main program
+    mag_bias[1] = (float) mag_bias[1]*mRes*magCalibration[1];   
+    mag_bias[2] = (float) mag_bias[2]*mRes*magCalibration[2];  
+       
+    // Get soft iron correction estimate
+    mag_scale[0]  = (mag_max[0] - mag_min[0])/2;  // get average x axis max chord length in counts
+    mag_scale[1]  = (mag_max[1] - mag_min[1])/2;  // get average y axis max chord length in counts
+    mag_scale[2]  = (mag_max[2] - mag_min[2])/2;  // get average z axis max chord length in counts
+
+    float avg_rad = (mag_scale[0] + mag_scale[1] + mag_scale[2]) / 3.0;
+
+    mag_scale[0] = avg_rad/((float)mag_scale[0]);
+    mag_scale[1] = avg_rad/((float)mag_scale[1]);
+    mag_scale[2] = avg_rad/((float)mag_scale[2]);
+  
+   Serial.println("Mag Calibration done!");
+  
+  
 }
 
 long int cpt=0;
@@ -106,6 +187,19 @@ void loop()
   int16_t mx=(Mag[1]<<8 | Mag[0]);
   int16_t my=(Mag[3]<<8 | Mag[2]);
   int16_t mz=(Mag[5]<<8 | Mag[4]);
+  
+  
+  // 16 bits registers - 10.0f*4912.0f/8190.0f
+  
+      // Calculate the magnetometer values in milliGauss
+    // Include factory calibration per data sheet and user environmental corrections
+      mx = (float)mx*mRes*magCalibration1[0] - mag_bias[0];  // get actual magnetometer value, this depends on scale being set
+      my = (float)my*mRes*magCalibration1[1] - mag_bias[1];  
+      mz = (float)mz*mRes*magCalibration1[2] - mag_bias[2];  
+      mx *= mag_scale[0];
+      my *= mag_scale[1];
+      mz *= mag_scale[2];
+ 
   
   // arc tangent of y/x 
   float heading = atan2(mx, my);
