@@ -69,14 +69,31 @@ void setup()
   
   // Request first magnetometer single measurement
   I2CwriteByte(MAG_ADDRESS,0x0A,0x01);
+
+    uint8_t ST1;
+  do
+  {
+    I2Cread(MAG_ADDRESS,0x02,1,&ST1);
+  }
+  while (!(ST1&0x01));
+
+  // Read magnetometer data  
+  uint8_t Mag[7];  
+  I2Cread(MAG_ADDRESS,0x03,7,Mag);
+
+  // Create 16 bits values from 8 bits data
   
-  
+  // Magnetometer
+  int16_t mx=(Mag[1]<<8 | Mag[0]);
+  int16_t my=(Mag[3]<<8 | Mag[2]);
+  int16_t mz=(Mag[5]<<8 | Mag[4]);
+
    magCalibration[0] =  (float)(mx - 128)/256.0f + 1.0f;
    magCalibration[1] =  (float)(my - 128)/256.0f + 1.0f;  
    magCalibration[2] =  (float)(mz - 128)/256.0f + 1.0f;
   
    // 16 bits registers - 10.0f*4912.0f/8190.0f
-   mRes = 10.0f*4912.0f/8190.0f;
+   mRes = 10.0f * 4912.0f/8190.0f;
   
   uint16_t ii = 0, sample_count = 0;
   int16_t mag_max[3] = {-32767, -32767, -32767}, mag_min[3] = {32767, 32767, 32767};
@@ -107,12 +124,13 @@ void setup()
 
   // Read magnetometer data  
   uint8_t Mag_temp[7];  
-  I2Cread(MAG_ADDRESS,0x03,7,Mag_temp[); // Read the x-, y-, and z-axis calibration values
+  I2Cread(MAG_ADDRESS,0x03,7,Mag_temp); // Read the x-, y-, and z-axis calibration values
     
       // Magnetometer
-  int16_t mag_temp[0]=(Mag_temp[1]<<8 | Mag_temp[0]);
-  int16_t mag_temp[1]=(Mag_temp[[3]<<8 | Mag_temp[[2]);
-  int16_t mag_temp[2]=(Mag_temp[[5]<<8 | Mag_temp[[4]);
+   int16_t mag_temp[3];    
+   mag_temp[0]=(Mag_temp[1]<<8 | Mag_temp[0]);
+   mag_temp[1]=(Mag_temp[3]<<8 | Mag_temp[2]);
+   mag_temp[2]=(Mag_temp[5]<<8 | Mag_temp[4]);
     
     for (int jj = 0; jj < 3; jj++) {
       if(mag_temp[jj] > mag_max[jj]) mag_max[jj] = mag_temp[jj];
@@ -193,9 +211,9 @@ void loop()
   
       // Calculate the magnetometer values in milliGauss
     // Include factory calibration per data sheet and user environmental corrections
-      mx = (float)mx*mRes*magCalibration1[0] - mag_bias[0];  // get actual magnetometer value, this depends on scale being set
-      my = (float)my*mRes*magCalibration1[1] - mag_bias[1];  
-      mz = (float)mz*mRes*magCalibration1[2] - mag_bias[2];  
+      mx = (float)mx*mRes*magCalibration[0] - mag_bias[0];  // get actual magnetometer value, this depends on scale being set
+      my = (float)my*mRes*magCalibration[1] - mag_bias[1];  
+      mz = (float)mz*mRes*magCalibration[2] - mag_bias[2];  
       mx *= mag_scale[0];
       my *= mag_scale[1];
       mz *= mag_scale[2];
@@ -242,7 +260,6 @@ void loop()
   // End of line
   delay(100); 
 }
-
 
 
 
