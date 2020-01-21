@@ -83,7 +83,7 @@ void setup()
   //assume at 100 Hz ODR, new mag data is available every 10 ms
   sample_count = 1500;
   uint8_t ST2;
-  uint8_t Mag_temp[7];
+  uint8_t Mag_temp[7] = {0,0,0,0,0,0,0};
   int16_t mag_temp[3] = {0,0,0};   
   for(ii = 0; ii < sample_count; ii++) {
       // :::  Magnetometer ::: 
@@ -106,9 +106,9 @@ void setup()
       I2Cread(MAG_ADDRESS,0x03,7,Mag_temp); // Read the x-, y-, and z-axis calibration values
     
       // Magnetometer   
-      mag_temp[0]=(Mag_temp[1]<<8 | Mag_temp[0]);
-      mag_temp[1]=(Mag_temp[3]<<8 | Mag_temp[2]);
-      mag_temp[2]=(Mag_temp[5]<<8 | Mag_temp[4]);
+      mag_temp[0]=((int16_t)Mag_temp[1]<<8) | Mag_temp[0];
+      mag_temp[1]=((int16_t)Mag_temp[3]<<8) | Mag_temp[2];
+      mag_temp[2]=((int16_t)Mag_temp[5]<<8) | Mag_temp[4];
     
       for (int jj = 0; jj < 3; jj++) {
         if(mag_temp[jj] > mag_max[jj]) mag_max[jj] = mag_temp[jj];
@@ -144,8 +144,8 @@ void setup()
   int16_t mz=(Mag[5]<<8 | Mag[4]);
    */
    magCalibration[0] =  (float)(Mag[0] - 128)/256.0f + 1.0f;
-   magCalibration[1] =  (float)(mag[1] - 128)/256.0f + 1.0f;  
-   magCalibration[2] =  (float)(mag[2] - 128)/256.0f + 1.0f;
+   magCalibration[1] =  (float)(Mag[1] - 128)/256.0f + 1.0f;  
+   magCalibration[2] =  (float)(Mag[2] - 128)/256.0f + 1.0f;
 
     // Get hard iron correction
     mag_bias[0]  = (mag_max[0] + mag_min[0])/2;  // get average x mag bias in counts
@@ -221,9 +221,9 @@ void loop()
   // Create 16 bits values from 8 bits data
   
   // Magnetometer
-  int16_t mx=(Mag[1]<<8 | Mag[0]);
-  int16_t my=(Mag[3]<<8 | Mag[2]);
-  int16_t mz=(Mag[5]<<8 | Mag[4]);
+  int16_t mx=((int16_t)Mag[1]<<8) | Mag[0];
+  int16_t my=((int16_t)Mag[3]<<8) | Mag[2];
+  int16_t mz=((int16_t)Mag[5]<<8) | Mag[4];
 
   int16_t uc_mx = mx;
   int16_t uc_my = my;
@@ -235,8 +235,8 @@ void loop()
     // Include factory calibration per data sheet and user environmental corrections
     //*mRes*magCalibration[0]
       mx = (float)mx*mRes*magCalibration[0] - mag_bias[0];  // get actual magnetometer value, this depends on scale being set
-      my = (float)my*mRes*magCalibration[1]  - mag_bias[1];  
-      mz = (float)mz*mRes*magCalibration[2]  - mag_bias[2];  
+      my = (float)my*mRes*magCalibration[1] - mag_bias[1];  
+      mz = (float)mz*mRes*magCalibration[2] - mag_bias[2];  
       mx *= mag_scale[0];
       my *= mag_scale[1];
       mz *= mag_scale[2];
