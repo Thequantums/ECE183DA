@@ -27,8 +27,8 @@
 #define SCL_PORT 12
 
 //calibrating variables
-float magCalibration[3], mRes, mag_scale[3], mag_bias[3];
-
+float mRes, mag_scale[3] = {0,0,0}, mag_bias[3] = {0,0,0};
+ uint8_t magCalibration[3] = {0,0,0};
 
 // This function read Nbytes bytes from I2C device at address Address. 
 // Put read bytes starting at register Register in the Data array. 
@@ -67,30 +67,6 @@ void setup()
   // Set by pass mode for the magnetometers
   I2CwriteByte(MPU9250_ADDRESS,0x37,0x02);
   
-  // Request first magnetometer single measurement
-  I2CwriteByte(MAG_ADDRESS,0x0A,0x01);
-
-    uint8_t ST1;
-  do
-  {
-    I2Cread(MAG_ADDRESS,0x02,1,&ST1);
-  }
-  while (!(ST1&0x01));
-  Serial.print ("hello.\n");
-  // Read magnetometer data  
-  uint8_t Mag[7];  
-  I2Cread(MAG_ADDRESS,0x03,7,Mag);
-
-  // Create 16 bits values from 8 bits data
-  
-  // Magnetometer
-  int16_t mx=(Mag[1]<<8 | Mag[0]);
-  int16_t my=(Mag[3]<<8 | Mag[2]);
-  int16_t mz=(Mag[5]<<8 | Mag[4]);
-
-   magCalibration[0] =  (float)(mx - 128)/256.0f + 1.0f;
-   magCalibration[1] =  (float)(my - 128)/256.0f + 1.0f;  
-   magCalibration[2] =  (float)(mz - 128)/256.0f + 1.0f;
   
    // 16 bits registers - 10.0f*4912.0f/8190.0f
    mRes = 10.0f * 4912.0f/8190.0f;
@@ -107,6 +83,8 @@ void setup()
   //assume at 100 Hz ODR, new mag data is available every 10 ms
   sample_count = 1500;
   uint8_t ST2;
+  uint8_t Mag_temp[7];
+  int16_t mag_temp[3] = {0,0,0};   
   for(ii = 0; ii < sample_count; ii++) {
       // :::  Magnetometer ::: 
   
@@ -124,11 +102,10 @@ void setup()
 
       
       // Read magnetometer data  
-      uint8_t Mag_temp[7];  
+       
       I2Cread(MAG_ADDRESS,0x03,7,Mag_temp); // Read the x-, y-, and z-axis calibration values
     
-      // Magnetometer
-      int16_t mag_temp[3];    
+      // Magnetometer   
       mag_temp[0]=(Mag_temp[1]<<8 | Mag_temp[0]);
       mag_temp[1]=(Mag_temp[3]<<8 | Mag_temp[2]);
       mag_temp[2]=(Mag_temp[5]<<8 | Mag_temp[4]);
@@ -144,6 +121,31 @@ void setup()
     Serial.println("mag x min/max:"); Serial.println(mag_max[0]); Serial.println(mag_min[0]);
     Serial.println("mag y min/max:"); Serial.println(mag_max[1]); Serial.println(mag_min[1]);
     Serial.println("mag z min/max:"); Serial.println(mag_max[2]); Serial.println(mag_min[2]);
+
+    // Request first magnetometer single measurement
+  I2CwriteByte(MAG_ADDRESS,0x0A,0x01);
+
+    uint8_t ST1;
+  do
+  {
+    I2Cread(MAG_ADDRESS,0x02,1,&ST1);
+  }
+  while (!(ST1&0x01));
+  Serial.print ("hello.\n");
+  // Read magnetometer data  
+  uint8_t Mag[7] = {0,0,0,0,0,0,0};  
+  I2Cread(MAG_ADDRESS,0x03,7,Mag);
+
+  // Create 16 bits values from 8 bits data
+  /*
+  // Magnetometer
+  int16_t mx=(Mag[1]<<8 | Mag[0]);
+  int16_t my=(Mag[3]<<8 | Mag[2]);
+  int16_t mz=(Mag[5]<<8 | Mag[4]);
+   */
+   magCalibration[0] =  (float)(Mag[0] - 128)/256.0f + 1.0f;
+   magCalibration[1] =  (float)(mag[1] - 128)/256.0f + 1.0f;  
+   magCalibration[2] =  (float)(mag[2] - 128)/256.0f + 1.0f;
 
     // Get hard iron correction
     mag_bias[0]  = (mag_max[0] + mag_min[0])/2;  // get average x mag bias in counts
@@ -302,10 +304,13 @@ void loop()
   Serial.print ("\tMz:");
   Serial.print (uc_mz);  
   Serial.println ("\t");
-  
+
+  Serial.println(" ");
   
   // End of line
   delay(100); 
 }
+
+
 
 
