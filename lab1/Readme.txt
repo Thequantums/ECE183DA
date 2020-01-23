@@ -11,9 +11,7 @@ angular velocity. Further trials were run to clearly define a deadzone, and then
 
 Read Me: This file
 
-Values for Magnetoeter Calibration: Five trials were run using calibration code and from these five values an average bias and scalar were
-computed that would then be hard coded into senser data gathering code. The magnitude of magnetic strength was gathered by looking at the 
-average value of data gathered when using calibrated values
+Values for Magnetometer Calibration: Five trials were run using calibration code and from these five values an average bias and scalar were computed that would then be hard coded into senser data gathering code. The magnitude of magnetic strength was gathered by looking at the average value of data gathered when using calibrated values
 
 pwm_data.txt: File where input for simulation is stored. Values are a pair of inputs, one for left PWM and righ PWM. Currently contains
 values that correspond to a continuos right turn centered on the right wheel
@@ -28,7 +26,7 @@ paperbot->Software->paperbot->paperbot.ino: Synthesis of provided code and gener
 data from the five sensors in a continuous fashion
 
 paperbot->Software->paperbot->mpu9250_sensor_test->mpu9250_sensor_test.ino: Code used to calibrate magnetometer. General method has been
-commented out in loop function and currently calibrated hardcoded values are functionally presenet. General method was created with help
+commented out in loop function and currently calibrated hardcoded values are functionally present. General method was created with help
 from kriswiner calibration code. Reference to this gitHub can be found in report
 
 All other code and documents were given to us and were used to complete this lab
