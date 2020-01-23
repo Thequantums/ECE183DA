@@ -235,34 +235,55 @@ def main():
     i = 0  # Run a counter during each iteration to get timestamp
     # Code in between #'s should be in a loop
     ###################################################################################################
-    v_left = pwm_to_velocity(100)  # Get left speed
-    v_right = pwm_to_velocity(100)  # Get right speed
-    state_dynamics(v_left, v_right)  # Update state
-    state_checker(v_left, v_right)  # Check validity of update
-    critical()  # Calculate critical values
-    d1 = the_d(theta)  # Distance of forward laser, orientation of laser is same as car
-    theta_x = theta - math.pi/2  # Orientation of second laser is -90 degrees of car's orientation
-    if theta_x < 0:  # Correct orientation for below 0 degrees and above 360 degrees
-        theta_x = theta_x + math.pi*2
-    elif theta_x > math.pi*2:
-        theta_x = theta_x - math.pi*2
-    d2 = the_d(theta_x)  # Distance of side laser
-    mx = M*math.sin(theta)  # Magnetometer along x-axis
-    my = M*math.cos(theta)  # Magnetometer along y-axis
-    gyro = w_curve  # Gyro Reading
-    timestamp = T*i
-    #  Print out values d1,d2,mx,my,gyro, and timestamp
+    myfile = open("pwm_data.txt",'r') # file to read
+    wr_file = open('simulation_data.txt', 'w') # file to write
+    wr_file.write("pwml   pwmr   d1   d2   mx   my   gyro   timestamp\n")
 
-    # Update state
-    x = x_next
-    y = y_next
-    theta = theta_next
-    i = i+1
+    for line in myfile:
+       pwml_str ='';
+       pwmr_str = '';
+       s_begin = 0;
+       for letter in line:
+         if letter != ',' and s_begin == 0:
+            pwml_str = pwml_str + letter
+         elif letter != ',' and s_begin ==1:
+            pwmr_str = pwmr_str + letter;
+         else:
+            s_begin = 1
+       pwml = (float)(pwml_str)
+       pwmr = (float)(pwmr_str)
+       #############################3###########3
+       v_left = pwm_to_velocity(pwml)  # Get left speed
+       v_right = pwm_to_velocity(pwmr)  # Get right speed
+       state_dynamics(v_left, v_right)  # Update state
+       state_checker(v_left, v_right)  # Check validity of update
+       critical()  # Calculate critical values
+       d1 = the_d(theta)  # Distance of forward laser, orientation of laser is same as car
+       theta_x = theta - math.pi/2  # Orientation of second laser is -90 degrees of car's     orientation
+       if theta_x < 0:  # Correct orientation for below 0 degrees and above 360 degrees
+         theta_x = theta_x + math.pi*2
+       elif theta_x > math.pi*2:
+         theta_x = theta_x - math.pi*2
+       d2 = the_d(theta_x)  # Distance of side laser
+       mx = M*math.sin(theta)  # Magnetometer along x-axis
+       my = M*math.cos(theta)  # Magnetometer along y-axis
+       gyro = w_curve  # Gyro Reading
+       timestamp = T*i
+       ##############################################
+       #  write out values d1,d2,mx,my,gyro, and timestamp
+       #rounded to 2 decimal places values
+       wr_file.write(str(round(pwml,2)) + ', ' + str(round(pwmr,2)) + ', ' + str(round(d1,2)) + ', ' + str(round(d2,2)) + ', ' + str(round(mx,2)) + ', ' + str(round(my,2)) + ', ' + str(round(gyro,2)) + ', ' + str(round(timestamp,2)) + "\n")
+       
+       # Update state
+       x = x_next
+       y = y_next
+       theta = theta_next
+       i = i+1
 
     #####################################################################################################
 
-    # For Debugging
-    print("Hello\n")
+    myfile.close()
+    wr_file.close()    
 
 if __name__ == "__main__":
     main()
