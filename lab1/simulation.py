@@ -71,17 +71,17 @@ def state_dynamics(vl, vr): #Updates State
     global y_next
     global theta_next
     if vl != vr: #If the robot is following a curved path
-        r_curve = L*(vl+vr)/(2*(vr-vl))
-        w_curve = (vr-vl)*L
-        ccx = x - r_curve*math.sin(theta)
-        ccy = y + r_curve*math.cos(theta)
-        x_next = (x - ccx)*math.cos(w_curve*T)-(y-ccy)*math.sin(w_curve*T) + ccx
-        y_next = (x - ccx)*math.sin(w_curve*T)+(y-ccy)*math.cos(w_curve*T) + ccy
-        theta_next = theta + w_curve*T
+        r_curve = L*(vl+vr)/(2*(vr-vl)) #calculate radius of curvature
+        w_curve = (vr-vl)*L             #calculate angular velocity
+        ccx = x - r_curve*math.sin(theta)   #calculate center of curvature (x coord)
+        ccy = y + r_curve*math.cos(theta)   #calculate center of curvature (y coord)
+        x_next = (x - ccx)*math.cos(w_curve*T)-(y-ccy)*math.sin(w_curve*T) + ccx    #calc next x coord
+        y_next = (x - ccx)*math.sin(w_curve*T)+(y-ccy)*math.cos(w_curve*T) + ccy    #calc next y coord
+        theta_next = theta + w_curve*T  #calc next theta
     else:   #If the robot is following a straight path
-        x_next = vl*T*math.cos(theta) + x
-        y_next = vl*T*math.sin(theta) + y
-        theta_next = theta
+        x_next = vl*T*math.cos(theta) + x    #calc next x coord
+        y_next = vl*T*math.sin(theta) + y    #calc next y coord
+        theta_next = theta                   #maintain heading
     return
 
 def state_checker(vl, vr):  #makes sure the next state is valid, corrects it if not.
