@@ -117,50 +117,50 @@ def state_checker(vl, vr):
     elif x_next <= 0 or x_next >= A:  # Error along x-axis
         if theta < math.pi/2:
             state_dynamics(vl, 0)  # Pivot along right-wheel
-            if y_next <= 0 or y_next >= B:  # If both wheels stuck, stay in current state
+            if (x_next <= 0 or x_next >= A) or (y_next <= 0 or y_next >= B):  # If another wheel gets stuck, stay in current state
                 x_next = x
                 y_next = y
                 theta_next = theta
         elif theta < math.pi:
             state_dynamics(0, vr)  # Pivot along left-wheel
-            if y_next <= 0 or y_next >= B:  # If both wheels stuck, stay in current state
+            if (x_next <= 0 or x_next >= A) or (y_next <= 0 or y_next >= B):  # If another wheel gets stuck, stay in current state
                 x_next = x
                 y_next = y
                 theta_next = theta
         elif theta < 3*math.pi/2:
             state_dynamics(vl, 0)  # Pivot along right-wheel
-            if y_next <= 0 or y_next >= B:  # If both wheels stuck, stay in current state
+            if (x_next <= 0 or x_next >= A) or (y_next <= 0 or y_next >= B):  # If another wheel gets stuck, stay in current state
                 x_next = x
                 y_next = y
                 theta_next = theta
         else:
             state_dynamics(0, vr)  # Pivot along left-wheel
-            if y_next <= 0 or y_next >= B:  # If both wheels stuck, stay in current state
+            if (x_next <= 0 or x_next >= A) or (y_next <= 0 or y_next >= B):  # If another wheel gets stuck, stay in current state
                 x_next = x
                 y_next = y
                 theta_next = theta
     elif y_next <= 0 or y_next >= B:  # Error along x-axis
         if theta < math.pi/2:
             state_dynamics(0, vr)  # Pivot along left-wheel
-            if x_next <= 0 or x_next >= A:  # If both wheels stuck, stay in current state
+            if (x_next <= 0 or x_next >= A) or (y_next <= 0 or y_next >= B):  # If another wheel gets stuck, stay in current state
                 x_next = x
                 y_next = y
                 theta_next = theta
         elif theta < math.pi:
             state_dynamics(vl, 0)  # Pivot along right-wheel
-            if x_next <= 0 or x_next >= A:  # If both wheels stuck, stay in current state
+            if (x_next <= 0 or x_next >= A) or (y_next <= 0 or y_next >= B):  # If another wheel gets stuck, stay in current state
                 x_next = x
                 y_next = y
                 theta_next = theta
         elif theta < 3*math.pi/2:
             state_dynamics(0, vr)  # Pivot along left-wheel
-            if x_next <= 0 or x_next >= A:  # If both wheels stuck, stay in current state
+            if (x_next <= 0 or x_next >= A) or (y_next <= 0 or y_next >= B):  # If another wheel gets stuck, stay in current state
                 x_next = x
                 y_next = y
                 theta_next = theta
         else:
             state_dynamics(vl, 0)  # Pivot along right-wheel
-            if x_next <= 0 or x_next >= A:  # If both wheels stuck, stay in current state
+            if (x_next <= 0 or x_next >= A) or (y_next <= 0 or y_next >= B):  # If another wheel gets stuck, stay in current state
                 x_next = x
                 y_next = y
                 theta_next = theta
@@ -213,7 +213,7 @@ def the_d(special_theta):
         else:
             d = y / math.sin(2*math.pi - special_theta)
     else:  # Hitting right wall again
-        d = (A-x)/math.cos(2*math.pi - special_theta)
+        d = (A-x) / math.cos(2*math.pi - special_theta)
     return d
 
 
@@ -274,6 +274,10 @@ def main():
         # Update state
         x = x_next
         y = y_next
+        if theta_next < 0:  # Correct orientation for below 0 degrees and above 360 degrees
+            theta_next = theta_next + math.pi * 2
+        elif theta_next > math.pi * 2:
+            theta_next = theta_next - math.pi * 2
         theta = theta_next
         i = i + 1
     #####################################################################################################
