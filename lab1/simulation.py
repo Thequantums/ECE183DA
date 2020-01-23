@@ -5,30 +5,29 @@
 import math
 #import numpy as np
 
-A = 1000
-A_bot = 10
-A_top = 990
-B = 1000
-B_bot = 1000
-T = .001
-M = 25
-R = 90
-L = 180
-theta_1 = 0
-theta_2 = 0
-theta_3 = 0
-theta_4 = 0
+A = 1000         #X ceiling(mm)
+B = 1000         #Y ceiling(mm)
+T = .001         #Sampling Period(s)
+M = 25           #Magnometer magnitude (+-6)(uT)
+R = 90           #Radius of Wheel (mm)
+L = 180          #Length of Robot (mm)
+theta_1 = 0      #Crit angle 1 (rad)
+theta_2 = 0      #Crit angle 2 (rad)
+theta_3 = 0      #Crit angle 3 (rad)
+theta_4 = 0      #Crit angle 4 (rad)
 
 
-w_curve = 0
+w_curve = 0      #Angular Velocity for State Dynamics
 
-x = 0
-y = 0
-theta = 0
+#STATE
+x = 0            #X coord
+y = 0            #Y coord
+theta = 0        #Heading
 
-x_next = 0
-y_next = 0
-theta_next = 0
+#NEXT STATE
+x_next = 0       #next X coord
+y_next = 0       #next Y coord
+theta_next = 0   #next Heading
 
 #def get_d1(x, y, delta, c_delta, A, B):
  #   if delta < c_delta[0]:
@@ -45,23 +44,23 @@ theta_next = 0
 #def get_d2():
 
 def pwm_to_velocity(pwm):
-    if pwm >= 150:
+    if pwm >= 150: #Max Speed Forward
         w = 6.5
-    elif pwm >= 110:
+    elif pwm >= 110:#Fast forward
         w = 0.0386*pwm + 0.582
-    elif pwm >= 91:
+    elif pwm >= 91:#Slow forward
         w = 0.254*pwm - 23.114
-    elif pwm >= 86:
+    elif pwm >= 86:#Deadzone
         w = 0
-    elif pwm >= 70:
+    elif pwm >= 70:#Slow Backwards
         w = .297*pwm - 25.456
-    elif pwm >= 60:
+    elif pwm >= 60:#Fast Backwards
         w = .0756*pwm - 10.038
-    else:
+    else:#Max Speed Reverse
         w = -6.33
     return w*R
 
-def state_dynamics(vl, vr):
+def state_dynamics(vl, vr): #Updates State
     global L
     global w_curve
     global theta
@@ -71,7 +70,7 @@ def state_dynamics(vl, vr):
     global x_next
     global y_next
     global theta_next
-    if vl != vr:
+    if vl != vr: #If the robot is following a curved path
         r_curve = L*(vl+vr)/(2*(vr-vl))
         w_curve = (vr-vl)*L
         ccx = x - r_curve*math.sin(theta)
@@ -79,13 +78,13 @@ def state_dynamics(vl, vr):
         x_next = (x - ccx)*math.cos(w_curve*T)-(y-ccy)*math.sin(w_curve*T) + ccx
         y_next = (x - ccx)*math.sin(w_curve*T)+(y-ccy)*math.cos(w_curve*T) + ccy
         theta_next = theta + w_curve*T
-    else:
+    else:   #If the robot is following a straight path
         x_next = vl*T*math.cos(theta) + x
         y_next = vl*T*math.sin(theta) + y
         theta_next = theta
     return
 
-def state_checker(vl, vr):
+def state_checker(vl, vr):  #makes sure the next state is valid, corrects it if not.
     global x
     global y
     global theta
@@ -148,7 +147,7 @@ def state_checker(vl, vr):
                 theta_next = theta
     return
 
-def critical():
+def critical(): #Determines Critical Angles
     global B
     global A
     global x
@@ -165,7 +164,7 @@ def critical():
     theta_crit_4 = math.atan2(-y, A-x)
     return
 
-def outputs(special_theta):
+def outputs(special_theta): #dumps outputs to external file for datalogging
     global M
     global A
     global B
