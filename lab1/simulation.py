@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 # Simulation For Car
-#Fuck this shit
+
 import math
 #import numpy as np
 
