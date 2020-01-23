@@ -2,6 +2,7 @@
 #define __DEBUG_H
 
 #  define DEBUG_ENABLED
+//This file contains tools for debuging
 
 #  ifndef DEBUG_ENABLED
 #    define DEBUG1(str) (void)0
