@@ -232,7 +232,7 @@ def main():
 
     i = 0  # Run a counter during each iteration to get timestamp
     # Code in between #'s should be in a loop
-    ###################################################################################################
+    ##################################################################################################
 
     myfile = open("pwm_data.txt", 'r')  # file to read
     wr_file = open('simulation_data.txt', 'w')  # file to write
