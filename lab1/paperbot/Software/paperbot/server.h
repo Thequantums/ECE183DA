@@ -1,3 +1,4 @@
+// This is a header file for server.cpp
 #include <WebSocketsServer.h>
 
 #ifndef __SERVER_H
