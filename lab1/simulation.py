@@ -29,19 +29,6 @@ x_next = 0       #next X coord
 y_next = 0       #next Y coord
 theta_next = 0   #next Heading
 
-#def get_d1(x, y, delta, c_delta, A, B):
- #   if delta < c_delta[0]:
-  #      d1 = (A - X) / np.cos(delta)
-   # elif delta < c_delta[1]:
-    #    if delta < 90:
-     #       d1 = (B - Y) / np.sin(delta)
-      #  else:
-      #      d1 = (B - Y) / np.cos(delta - 90)
-    #elif delta < c_delta[3]:
-      #  if delta < 180:
-
-
-#def get_d2():
 
 def pwm_to_velocity(pwm):
     if pwm >= 150: #Max Speed Forward
@@ -59,6 +46,7 @@ def pwm_to_velocity(pwm):
     else:#Max Speed Reverse
         w = -6.33
     return w*R
+
 
 def state_dynamics(vl, vr): #Updates State
     global L
@@ -83,6 +71,7 @@ def state_dynamics(vl, vr): #Updates State
         y_next = vl*T*math.sin(theta) + y    #calc next y coord
         theta_next = theta                   #maintain heading
     return
+
 
 def state_checker(vl, vr):  #makes sure the next state is valid, corrects it if not.
     global x
@@ -147,6 +136,7 @@ def state_checker(vl, vr):  #makes sure the next state is valid, corrects it if 
                 theta_next = theta
     return
 
+
 def critical(): #Determines Critical Angles
     global B
     global A
@@ -154,17 +144,18 @@ def critical(): #Determines Critical Angles
     global y
     global theta
     global M
-    global theta_crit_1
-    global theta_crit_2
-    global theta_crit_3
-    global theta_crit_4
-    theta_crit_1 = math.atan2(B-y, A-x)
-    theta_crit_2 = math.atan2(B-y, -x) + math.pi
-    theta_crit_3 = math.atan2(y,x) + math.pi
-    theta_crit_4 = math.atan2(-y, A-x)
+    global theta_1
+    global theta_2
+    global theta_3
+    global theta_4
+    theta_1 = math.atan2(B-y, A-x)
+    theta_2 = math.atan2(B-y, -x) + math.pi
+    theta_3 = math.atan2(y,x) + math.pi
+    theta_4 = math.atan2(-y, A-x)
     return
 
-def outputs(special_theta): #dumps outputs to external file for datalogging
+
+def the_d(special_theta):
     global M
     global A
     global B
@@ -189,8 +180,28 @@ def outputs(special_theta): #dumps outputs to external file for datalogging
     else:
         d = (A-x)/math.cos(2*math.pi-special_theta)
     return d
-    
+
+
 def main():
+    global theta
+    global M
+
+
+    v_left = pwm_to_velocity(pwm_left)
+    v_right = pwm_to_velocity(pwm_right)
+    state_dynamics(v_left, v_right)
+    state_checker(v_left, v_right)
+    critical()
+    d1 = the_d(theta)
+    theta_x = theta - math.pi/2
+    if theta_x < 0:
+        theta_x = theta_x + math.pi*2
+    elif theta_x > math.pi*2:
+        theta_x = theta_x - math.pi*2
+    d2 = the_d(theta_x)
+    mx = M*math.sin(theta)
+    my = M*math.cos(theta)
+    gyro = w_curve
 
 
 
