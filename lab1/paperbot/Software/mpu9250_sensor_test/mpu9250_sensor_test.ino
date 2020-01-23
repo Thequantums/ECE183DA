@@ -12,6 +12,7 @@
 
 #define    MPU9250_ADDRESS            0x68
 #define    MAG_ADDRESS                0x0C
+#define    GYRO_ADDRESS               0x43
 
 #define    GYRO_FULL_SCALE_250_DPS    0x00  
 #define    GYRO_FULL_SCALE_500_DPS    0x08
@@ -25,6 +26,10 @@
 
 #define SDA_PORT 14
 #define SCL_PORT 12
+
+//calibrating variables
+float mRes, mag_scale[3] = {0,0,0}, mag_bias[3] = {0,0,0};
+uint8_t magCalibration[3] = {0,0,0};
 
 // This function read Nbytes bytes from I2C device at address Address. 
 // Put read bytes starting at register Register in the Data array. 
@@ -53,7 +58,6 @@ void I2CwriteByte(uint8_t Address, uint8_t Register, uint8_t Data)
   Wire.endTransmission();
 }
 
-
 // Initializations
 void setup()
 {
@@ -64,10 +68,140 @@ void setup()
   // Set by pass mode for the magnetometers
   I2CwriteByte(MPU9250_ADDRESS,0x37,0x02);
   
-  // Request first magnetometer single measurement
-  I2CwriteByte(MAG_ADDRESS,0x0A,0x01);
+  
+   // 16 bits registers - 10.0f*4912.0f/8190.0f
+   //mRes = 10.0f * 4912.0f/8190.0f;
+  
+  uint16_t ii = 0, sample_count;
+  int16_t mag_max[3] = {-32767, -32767, -32767}, mag_min[3] = {32767, 32767, 32767};
 
+  delay(1000);
+// shoot for ~fifteen seconds of mag data
+  /*
+  if(_Mmode == 0x02) sample_count = 128;  // at 8 Hz ODR, new mag data is available every 125 ms
+  if(_Mmode == 0x06) sample_count = 1500;  // at 100 Hz ODR, new mag data is available every 10 ms
+  */ 
+  //assume at 100 Hz ODR, new mag data is available every 10 ms
+  sample_count = 300;
+  uint8_t ST2;
+  uint8_t Mag_temp[7];
+  
+  int16_t mag_temp[3] = {0,0,0};   
+  for(ii = 0; ii < sample_count; ii++) {
+      // :::  Magnetometer ::: 
+
+      // Request first magnetometer single measurement
+      I2CwriteByte(MAG_ADDRESS,0x0A,0x01);
+  
+      // Read register Status 1 and wait for the DRDY: Data Ready
+      do
+      {
+        I2Cread(MAG_ADDRESS,0x02,1,&ST2);
+      }
+      while (!(ST2&0x01));
+      
+      // Read magnetometer data  
+      I2Cread(MAG_ADDRESS,0x03,7,Mag_temp); // Read the x-, y-, and z-axis values
+    
+      //Magnetometer 
+      mag_temp[0]=(Mag_temp[1]<<8 | Mag_temp[0]);
+      mag_temp[1]=(Mag_temp[3]<<8 | Mag_temp[2]);
+      mag_temp[2]=(Mag_temp[5]<<8 | Mag_temp[4]);
+    
+      for (int jj = 0; jj < 3; jj++) {
+        if(mag_temp[jj] > mag_max[jj]) mag_max[jj] = mag_temp[jj];
+        if(mag_temp[jj] < mag_min[jj]) mag_min[jj] = mag_temp[jj];
+      }
+      Serial.println("Calibrating");
+      Serial.println(ii);
+      delay(135);
+  }
+
+    //Serial.println("mag x min/max:"); Serial.println(mag_max[0]); Serial.println(mag_min[0]);
+    //Serial.println("mag y min/max:"); Serial.println(mag_max[1]); Serial.println(mag_min[1]);
+    //Serial.println("mag z min/max:"); Serial.println(mag_max[2]); Serial.println(mag_min[2]);
+
+    // Request first magnetometer single measurement
+  I2CwriteByte(MAG_ADDRESS,0x0A,0x01);
+/*
+  uint8_t ST1;
+  do
+  {
+    I2Cread(MAG_ADDRESS,0x02,1,&ST1);
+  }
+  while (!(ST1&0x01));
+  Serial.print ("hello.\n");
+  // Read magnetometer data  
+  uint8_t Mag[7] = {0,0,0,0,0,0,0};  
+  I2Cread(MAG_ADDRESS,0x03,7,Mag);
+  */
+
+  // Create 16 bits values from 8 bits data
+  /*
+  // Magnetometer
+  int16_t mx=(Mag[1]<<8 | Mag[0]);
+  int16_t my=(Mag[3]<<8 | Mag[2]);
+  int16_t mz=(Mag[5]<<8 | Mag[4]);
+   */
+   //magCalibration[0] =  (float)(Mag[0] - 128)/256.0f + 1.0f;
+   //magCalibration[1] =  (float)(mag[1] - 128)/256.0f + 1.0f;  
+   //magCalibration[2] =  (float)(mag[2] - 128)/256.0f + 1.0f;
+
+    // Get hard iron correction
+    mag_bias[0]  = (mag_max[0] + mag_min[0])/2;  // get average x mag bias in counts
+    mag_bias[1]  = (mag_max[1] + mag_min[1])/2;  // get average y mag bias in counts
+    mag_bias[2]  = (mag_max[2] + mag_min[2])/2;  // get average z mag bias in counts
+
+    //mag_bias[0] = (float) mag_bias[0]*mRes*magCalibration[0];  // save mag biases in G for main program
+    //mag_bias[1] = (float) mag_bias[1]*mRes*magCalibration[1];   
+    //mag_bias[2] = (float) mag_bias[2]*mRes*magCalibration[2];  
+       
+    // Get soft iron correction estimate
+    mag_scale[0]  = (mag_max[0] - mag_min[0])/2;  // get average x axis max chord length in counts
+    mag_scale[1]  = (mag_max[1] - mag_min[1])/2;  // get average y axis max chord length in counts
+    mag_scale[2]  = (mag_max[2] - mag_min[2])/2;  // get average z axis max chord length in counts
+
+    float avg_rad = (mag_scale[0] + mag_scale[1] + mag_scale[2])/3.0;
+
+    mag_scale[0] = avg_rad/((float)mag_scale[0]);
+    mag_scale[1] = avg_rad/((float)mag_scale[1]);
+    mag_scale[2] = avg_rad/((float)mag_scale[2]);
+  
+   Serial.println("Mag Calibration done!");
+/*
+   Serial.print("mag_bias[0]:");
+   Serial.println(mag_bias[0]);
+   Serial.print("mag_bias[1]:");
+   Serial.println(mag_bias[1]);
+   Serial.print("mag_bias[2]:");
+   Serial.println(mag_bias[2]);
+   
+   Serial.print("mag_scale[0]:");
+   Serial.println(mag_scale[0]);
+      Serial.print("mag_scale[1]:");
+   Serial.println(mag_scale[1]);
+      Serial.print("mag_scale[2]:");
+   Serial.println(mag_scale[2]);
+   */
 }
+
+void readGyro_data(int16_t* raw_data ) {
+  
+  uint8_t temp_data [7];
+  Wire.beginTransmission(MPU9250_ADDRESS);
+  Wire.write(0x43);
+  Wire.endTransmission(false);
+  uint8_t i = 0;
+  Wire.requestFrom(MPU9250_ADDRESS,7);
+  while (Wire.available()) {
+      temp_data[i++] = Wire.read();
+  }
+   raw_data[0] = (temp_data[1]<<8 | temp_data[0]);
+   raw_data[1] = (temp_data[2]<<8 | temp_data[3]);
+   raw_data[2] = (temp_data[4]<<8 | temp_data[5]);
+  
+}
+
 
 long int cpt=0;
 // Main loop, read and display data
@@ -107,22 +241,38 @@ void loop()
   int16_t my=(Mag[3]<<8 | Mag[2]);
   int16_t mz=(Mag[5]<<8 | Mag[4]);
 
-  float c_mx = (float)mx-64;
-  float c_my = (float)my+162.6;
-  float c_mz = (float)mz+1;
-  c_mx *= 1.012;
-  c_my *= 1.01;
-  c_mz *= 0.978;
-
-  float heading = atan2(c_mx, c_my);
-
+  
+  // 16 bits registers - 10.0f*4912.0f/8190.0f
+  
+      // Calculate the magnetometer values in milliGauss
+    // Include factory calibration per data sheet and user environmental corrections
+    //*mRes*magCalibration[0]
+   float f_mx = (float)mx - 64;
+   float f_my = (float)my + 162.6;
+   float f_mz = (float)mz + 1;
+    f_mx *= 1.012;
+    f_my *= 1.01;
+    f_mz *= 0.978;
+    
+    /*
+      mx = (float)mx - mag_bias[0];  // get actual magnetometer value, this depends on scale being set
+      my = (float)my - mag_bias[1];  
+      mz = (float)mz - mag_bias[2];  
+      mx *= mag_scale[0];
+      my *= mag_scale[1];
+      mz *= mag_scale[2];
+   */
+  
+  // arc tangent of y/x 
+  float heading = atan2(f_mx, f_my);
+  
   // Once you have your heading, you must then add your 'Declination Angle',
   // which is the 'Error' of the magnetic field in your location. Mine is 0.0404 
   // Find yours here: http://www.magnetic-declination.com/
   
   // If you cannot find your Declination, comment out these two lines, your compass will be slightly off.
-  //float declinationAngle = 0.0404;
-  //heading += declinationAngle;
+ // float declinationAngle = 0.0404;
+ // heading += declinationAngle;
 
   // Correct for when signs are reversed.
   if(heading < 0)
@@ -132,25 +282,46 @@ void loop()
   if(heading > 2*PI)
     heading -= 2*PI;
 
+
   // Convert radians to degrees for readability.
   float headingDegrees = heading * 180/PI; 
-
-  Serial.print("\rHeading:\t");
+  
+  //float uc_headingDegrees = uc_heading * 180/PI;
+  Serial.print("\rCalibrated Heading:\t");
   Serial.print(heading);
   Serial.print(" Radians   \t");
   Serial.print(headingDegrees);
   Serial.println(" Degrees   \t");
-
-  Serial.print ("Magnetometer readings:"); 
+  
+  Serial.print (" Calibrated Magnetometer readings:"); 
   Serial.print ("\tMx:");
-  Serial.print (c_mx*.6); 
+  Serial.print (f_mx*0.6); 
   Serial.print ("\tMy:");
-  Serial.print (c_my*.6);
+  Serial.print (f_my*0.6);
   Serial.print ("\tMz:");
-  Serial.print (c_mz*.6);  
+  Serial.print (f_mz*0.6);  
   Serial.println ("\t");
   
   
-  // End of line
-  delay(100); 
+  //**************** Gyro Reading *****************
+  // Set by pass mode for the Gyro
+  int16_t gyro_data[3];
+  readGyro_data(gyro_data);
+  Serial.print("Gyro data:  ");
+  Serial.print ((float)((gyro_data[0] * 250) / 32768));  
+  Serial.print ("\t");
+  Serial.print ((float)((gyro_data[1] * 250) / 32768));  
+  Serial.print ("\t");
+  Serial.print ((float)((gyro_data[2] * 250) / 32768));  
+  Serial.print ("\t");
+  Serial.println("");
+  
+    // End of line
+
+  
+  delay(100);
+
+
+
+   
 }
