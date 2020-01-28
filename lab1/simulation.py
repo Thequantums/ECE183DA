@@ -11,8 +11,10 @@
 # front of the car, laser distance to the side of the car, magnetometer along
 # x and y, and gyroscope reading for rotation along z-axis.
 # #####################################################################################
+from matplotlib.widgets import Slider
 
 import math  # Needed for all the trigonometry
+import matplotlib.pyplot as plt
 
 #  Global Constants
 A = 530          # X ceiling(mm)
@@ -44,6 +46,16 @@ theta = 0        # Heading
 x_next = 0       # next X coord
 y_next = 0       # next Y coord
 theta_next = 0   # next Heading
+
+XStateList = []   # state storage for plotting
+YStateList = []   # state storage for plotting
+
+#Initialization for Plotter (Graph size, axes position, etc.
+fig = plt.figure(figsize=(8, 8))
+plot_ax = plt.axes([0.1, 0.2, 0.8, 0.65])
+slider_ax = plt.axes([0.1, 0.05, 0.8, 0.05])
+plt.axes(plot_ax)
+state_plot, = plt.plot(XStateList, YStateList, 'r')
 
 
 def pwm_to_velocity(pwm):
@@ -217,6 +229,14 @@ def the_d(special_theta):
     return d
 
 
+def update(a):                  #Function called when slider moves, in order to update plot
+    global XStateList
+    global YStateList
+    state_plot.set_xdata(XStateList[0:int(round(a))])  # set new x-coordinates of the plotted points
+    state_plot.set_ydata(YStateList[0:int(round(a))])  # set new y-coordinates of the plotted points
+    fig.canvas.draw_idle()  # redraw the plot
+
+
 def main():
     # This function reads input from a file and obtains two desired PWM values.
     # It then runs all the other functions to update state and output measurements onto a different file
@@ -229,6 +249,9 @@ def main():
     global x_next
     global y_next
     global theta_next
+    global XStateList
+    global YStateList
+    global state_plot
 
     i = 0  # Run a counter during each iteration to get timestamp
     # Code in between #'s should be in a loop
@@ -274,6 +297,10 @@ def main():
         # Update state
         x = x_next
         y = y_next
+
+        XStateList.append(x)
+        YStateList.append(y)
+
         if theta_next < 0:  # Correct orientation for below 0 degrees and above 360 degrees
             theta_next = theta_next + math.pi * 2
         elif theta_next > math.pi * 2:
@@ -283,6 +310,13 @@ def main():
     #####################################################################################################
     myfile.close()
     wr_file.close()
+
+    state_plot = plt.plot(XStateList, YStateList, 'r')[0]   #Creates the plot
+    a_slider = Slider(slider_ax ,'a' ,0 , len(XStateList), valinit=0, valfmt='%0.0f') #Creates slider with axes, variable, min val, max val, init val, and as integer
+
+    a_slider.on_changed(update) #update the plot when the slider changes
+    plt.show()
+
 
 
 if __name__ == "__main__":
