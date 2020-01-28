@@ -49,6 +49,7 @@ theta_next = 0   # next Heading
 
 XStateList = []   # state storage for plotting
 YStateList = []   # state storage for plotting
+ThetaStateList = []   # state storage for plotting
 
 #Initialization for Plotter (Graph size, axes position, etc.
 fig = plt.figure(figsize=(8, 8))
@@ -230,10 +231,14 @@ def the_d(special_theta):
 
 
 def update(a):                  #Function called when slider moves, in order to update plot
+    global state_plot
     global XStateList
     global YStateList
-    state_plot.set_xdata(XStateList[0:int(round(a))])  # set new x-coordinates of the plotted points
-    state_plot.set_ydata(YStateList[0:int(round(a))])  # set new y-coordinates of the plotted points
+    global ThetaStateList
+    sana = int(a)
+    state_plot.set_xdata(XStateList[0:sana])  # set new x-coordinates of the plotted points
+    state_plot.set_ydata(YStateList[0:sana])  # set new y-coordinates of the plotted points
+    plt.arrow(XStateList[sana-1],YStateList[sana-1],-3*math.cos(ThetaStateList[sana-1]),-3*math.sin(ThetaStateList[sana-1]),shape = 'full', width = 0.01, head_width = 1)
     fig.canvas.draw_idle()  # redraw the plot
 
 
@@ -251,6 +256,7 @@ def main():
     global theta_next
     global XStateList
     global YStateList
+    global ThetaStateList
     global state_plot
 
     i = 0  # Run a counter during each iteration to get timestamp
@@ -306,6 +312,7 @@ def main():
         elif theta_next > math.pi * 2:
             theta_next = theta_next - math.pi * 2
         theta = theta_next
+        ThetaStateList.append(theta)
         i = i + 1
     #####################################################################################################
     myfile.close()
