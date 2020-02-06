@@ -235,7 +235,7 @@ def update(a):                  #Function called when slider moves, in order to 
     global XStateList
     global YStateList
     global ThetaStateList
-    sana = int(a)
+    saan = int(a)
     state_plot.set_xdata(XStateList[0:sana])  # set new x-coordinates of the plotted points
     state_plot.set_ydata(YStateList[0:sana])  # set new y-coordinates of the plotted points
     plt.arrow(XStateList[sana-1],YStateList[sana-1],-3*math.cos(ThetaStateList[sana-1]),-3*math.sin(ThetaStateList[sana-1]),shape = 'full', width = 0.01, head_width = 1)
