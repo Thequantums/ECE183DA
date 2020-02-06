@@ -16,7 +16,7 @@ data = []
 #######################################################
 for line in myfile:
     if line == 'pwml   pwmr   d1   d2   mx   my   gyro   timestamp\n':
-        print('hey')
+        pass
     else:
         data = line.split(',')
         pmwL.append(float(data[0]))
