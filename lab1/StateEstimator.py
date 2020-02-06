@@ -40,28 +40,27 @@ outputVal = outputVal.transpose()
 ###################################################
 # Kalman variables
 ###################################################
-print(inputVal.shape[0])
-x = [[1,1]]      #State     (each state of size n)
-print(x[0])
-Pk = [[1,1],[1,1]]    #Covariance Matrix    (each element of size nxn)
-Fk = np.array([[1,1],[1,1]])     #Prediction Matrix (from linearization) (size nxn)
-Hk = np.array([[1,1],[1,1]])     #Sensor Model (from linearization)
+
+x = [[250,250]]                  #State     (each state of size n)
+Pk = [[1,1],[1,1]]               #Covariance Matrix    (each element of size nxn)
+Fk = np.array([[1,0],[3,1]])     #Prediction Matrix (from linearization) (size nxn)
+Hk = np.array([[2,1],[1,1]])     #Sensor Model (from linearization)
 Qk = np.array([[0,0],[0,0]])     #Environmental Error (from experimentation)
 Rk = np.array([[0,0],[0,0]])     #Sensor Noise (from experimentation)
-K = np.array([])      #Kalman Gain
-zk = np.array([[0,0]])     #Sensor Reading
-xtemp = np.array([[0,0],[0,0]])  #Posterior State
-Ptemp = np.array([])  #Posterior Covariance
+K = np.array([])                 #Kalman Gain
+zk = np.array([0,0])             #Sensor Reading
+xtemp = np.array([])             #Posterior State
+Ptemp = np.array([])             #Posterior Covariance
+
+########################################################
 #Implementation of Kalman Filter (xtemp is placeholder)
-print(range(0,inputVal.shape[1]))
+########################################################
+
 for i in range(inputVal.shape[0]):
-    print(i)
     xtemp = np.array(x[i])
     Ptemp = np.dot(Fk,np.dot(np.array(Pk[i]),Fk.T)) +Qk
     K = np.dot(Ptemp,np.dot(Hk.T,np.invert(np.dot(Hk,np.dot(Ptemp,Hk.T)+Rk))))
-    print(zk.shape,',',K.shape,',',Hk.shape,',',xtemp.shape)
-    print(np.dot(K,(np.dot(Hk,xtemp))).shape)
-    x.append(((xtemp + np.dot(K,(np.dot(Hk,xtemp)))).reshape(2)).tolist())
+    x.append(((xtemp + np.dot(K,(zk-np.dot(Hk,xtemp)))).reshape(2)).tolist())
     Pk.append(Ptemp - np.dot(K,np.dot(Hk,Ptemp)))
 print(x)
 
