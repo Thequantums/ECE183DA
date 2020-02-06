@@ -40,26 +40,31 @@ outputVal = outputVal.transpose()
 ###################################################
 # Kalman variables
 ###################################################
-x = np.array([])      #State
-Pk = np.array([])     #Covariance Matrix
-Fk = np.array([])     #Prediction Matrix (from linearization)
-Hk = np.array([])     #Sensor Model (from linearization)
-Qk = np.array([])     #Environmental Error (from experimentation)
-Rk = np.array([])     #Sensor Noise (from experimentation)
+print(inputVal.shape[0])
+x = [[1,1]]      #State     (each state of size n)
+print(x[0])
+Pk = [[1,1],[1,1]]    #Covariance Matrix    (each element of size nxn)
+Fk = np.array([[1,1],[1,1]])     #Prediction Matrix (from linearization) (size nxn)
+Hk = np.array([[1,1],[1,1]])     #Sensor Model (from linearization)
+Qk = np.array([[0,0],[0,0]])     #Environmental Error (from experimentation)
+Rk = np.array([[0,0],[0,0]])     #Sensor Noise (from experimentation)
 K = np.array([])      #Kalman Gain
-zk = np.array([])     #Sensor Reading
-xtemp = np.array([])  #Posterior State
+zk = np.array([[0,0]])     #Sensor Reading
+xtemp = np.array([[0,0],[0,0]])  #Posterior State
 Ptemp = np.array([])  #Posterior Covariance
-
 #Implementation of Kalman Filter (xtemp is placeholder)
-for i in inputVal:
-    xtemp = x[i] + 1
-    Ptemp = Fk*Pk[i]*Fk.transpose() +Qk
-    K = Ptemp*Hk.transpose()*np.invert(Hk*Ptemp*Hk.transpose()+Rk)
-    x[i+1] = xtemp + K*(zk - Hk*xtemp)
-    Pk[i+1] = Ptemp - K*Hk*Ptemp
+print(range(0,inputVal.shape[1]))
+for i in range(inputVal.shape[0]):
+    print(i)
+    xtemp = np.array(x[i])
+    Ptemp = np.dot(Fk,np.dot(np.array(Pk[i]),Fk.T)) +Qk
+    K = np.dot(Ptemp,np.dot(Hk.T,np.invert(np.dot(Hk,np.dot(Ptemp,Hk.T)+Rk))))
+    print(zk.shape,',',K.shape,',',Hk.shape,',',xtemp.shape)
+    print(np.dot(K,(np.dot(Hk,xtemp))).shape)
+    x.append(((xtemp + np.dot(K,(np.dot(Hk,xtemp)))).reshape(2)).tolist())
+    Pk.append(Ptemp - np.dot(K,np.dot(Hk,Ptemp)))
+print(x)
 
 
 
-print(inputVal)
 myfile.close()
