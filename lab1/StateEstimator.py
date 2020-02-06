@@ -19,14 +19,14 @@ for line in myfile:
         print('hey')
     else:
         data = line.split(',')
-        pmwL.append(data[0])
-        pmwR.append(data[1])
-        d1.append(data[2])
-        d2.append(data[3])
-        mx.append(data[4])
-        my.append(data[5])
-        gyro.append(data[6])
-        timestamp.append(data[7].rstrip('\n'))
+        pmwL.append(float(data[0]))
+        pmwR.append(float(data[1]))
+        d1.append(float(data[2]))
+        d2.append(float(data[3]))
+        mx.append(float(data[4]))
+        my.append(float(data[5]))
+        gyro.append(float(data[6]))
+        timestamp.append(float(data[7].rstrip('\n')))
 
 
 inputVal = np.array([pmwL, pmwR])
@@ -42,28 +42,40 @@ outputVal = outputVal.transpose()
 ###################################################
 
 x = [[250,250]]                  #State     (each state of size n)
-Pk = [[1,1],[1,1]]               #Covariance Matrix    (each element of size nxn)
-Fk = np.array([[1,0],[3,1]])     #Prediction Matrix (from linearization) (size nxn)
-Hk = np.array([[2,1],[1,1]])     #Sensor Model (from linearization)
+Pk = [[1,0],[0,1]]               #Covariance Matrix    (each element of size nxn)
+Fk = np.array([[0,0],[0,0]])     #Prediction Matrix (from linearization) (size nxn)
+Hk = np.array([[1,0],[0,1]])     #Sensor Model (from linearization)
 Qk = np.array([[0,0],[0,0]])     #Environmental Error (from experimentation)
 Rk = np.array([[0,0],[0,0]])     #Sensor Noise (from experimentation)
 K = np.array([])                 #Kalman Gain
-zk = np.array([0,0])             #Sensor Reading
-xtemp = np.array([])             #Posterior State
-Ptemp = np.array([])             #Posterior Covariance
+zk = np.array([1,2])             #Sensor Reading
+xPost = np.array([])             #Posteriori State
+PPost = np.array([])             #Posteriori Covariance
+##########################################################
+# State Dynamics Function (State+Input=>Posteriori State)
+##########################################################
+#Takes a state at one instant and a set of PWM vals at that instant. Should output as a list with size=x.size
+
+def StateDyn(x,inVals):
+    xout = np.array([])
+   ####State Dynamics Go Here (erase my garbage test code
+    if inVals[0]>0:
+        xout = np.array(x) + np.array([1,1])
+    else:
+        xout = np.array(x) - np.array([1,1])
+    ####
+    return xout.tolist()
+
 
 ########################################################
 #Implementation of Kalman Filter (xtemp is placeholder)
 ########################################################
 
-for i in range(inputVal.shape[0]):
-    xtemp = np.array(x[i])
-    Ptemp = np.dot(Fk,np.dot(np.array(Pk[i]),Fk.T)) +Qk
-    K = np.dot(Ptemp,np.dot(Hk.T,np.invert(np.dot(Hk,np.dot(Ptemp,Hk.T)+Rk))))
-    x.append(((xtemp + np.dot(K,(zk-np.dot(Hk,xtemp)))).reshape(2)).tolist())
-    Pk.append(Ptemp - np.dot(K,np.dot(Hk,Ptemp)))
+for i in range(inputVal.shape[0]-1):
+    xPost = StateDyn(x[i],inputVal[i])
+    PPost = np.dot(Fk,np.dot(np.array(Pk[i]),Fk.T)) + Qk
+    K = np.dot(PPost,np.dot(Hk.T,np.invert(np.dot(Hk,np.dot(PPost,Hk.T)+Rk))))
+    x.append(((xPost + np.dot(K,(zk-np.dot(Hk,xPost)))).reshape(2)).tolist())
+    Pk.append(PPost - np.dot(K,np.dot(Hk,PPost)))
 print(x)
-
-
-
 myfile.close()
