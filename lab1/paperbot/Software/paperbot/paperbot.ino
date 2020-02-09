@@ -102,6 +102,8 @@ char* mDNS_name = "paperbot"; // setup Domain name for ESP8266 as "paperbot" to 
 String html; // output to html file
 String css; //out
 
+uint8_t client_id; // client id. Assume it is fixed for a connection
+
 //****************** from mpu9250_sensor_test *****************************************
 
 // This function read Nbytes bytes from I2C device at address Address. 
@@ -342,7 +344,11 @@ void setup() {
 }
 
 void loop() {
-  
+
+  // *************** web sever loop
+    wsLoop(); // loop to keep socket alive and wait for event to response
+    httpLoop(); // loop to create secure connection for serve and client
+    
    // Request first magnetometer single measurement
   I2CwriteByte(MAG_ADDRESS,0x0A,0x01);
   
@@ -425,7 +431,7 @@ void loop() {
   
     // End of line
     
-//*********** loop for vl
+//*********** loop for vl*********************************
   Serial.print("Lidar 1 range(mm): ");
   // print out distance output from sensor in millimeter if wait too long, time out.
   Serial.print(sensor.readRangeSingleMillimeters());
@@ -434,11 +440,16 @@ void loop() {
   Serial.print("  Lidar 2 range(mm): ");
   Serial.println(sensor2.readRangeSingleMillimeters());
   if (sensor.timeoutOccurred()) { Serial.println(" TIMEOUT"); }
-    
 
-// *************** web sever loop
-    wsLoop(); // loop to keep socket alive and wait for event to response
-    httpLoop(); // loop to create secure connection for serve and client
+//*************Writting sensors' data to website************************************
+
+  //Using websocket
+   char* sensors_output;  
+   sprintf(sensors_output, "Lidar 1 rang(mm): %.2f, Lidar 2: %.2f, Heading: %.2f, Gyro_Data: %.2f.\n", (1.0 * sensor.readRangeSingleMillimeters()), (1.0 * sensor2.readRangeSingleMillimeters()), headingDegrees,(float)((gyro_data[2] * 250) / 32768));
+   wsSend(client_id, sensors_output);
+
+
+    
 }
 
 
@@ -518,6 +529,7 @@ void webSocketEvent(uint8_t id, WStype_t type, uint8_t * payload, size_t length)
             // Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", id, ip[0], ip[1], ip[2], ip[3], payload);
             DEBUG("Web socket connected, id = ", id);
 
+             client_id = id; // assign the ID of the connection to write data to website in loop. 
             // send message to client
             wsSend(id, "Connected to ");
             wsSend(id, ap_ssid); // send IP of local machine 
