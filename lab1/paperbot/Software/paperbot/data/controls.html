@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
   <meta charset=utf-8 />
@@ -116,7 +116,7 @@
       var timeStr = new Date().toLocaleTimeString();
       var text = "(" + timeStr + ") : CONNECTED <br>";
       connection.send('Connect ' + new Date()); 
-      txLog(text);
+      txLog(text); //write message on righ handside
     };
     connection.onerror = function(error){
       var timeStr = new Date().toLocaleTimeString();
@@ -128,7 +128,7 @@
       var timeStr = new Date().toLocaleTimeString();
       var text = "(" + timeStr + ") : RX = " + e.data + "<br>";
       console.log('Server: ', e.data);
-      rxLog(text);
+      rxLog(text); //write message on left hand side coz rx
     };
 
     /* Commands */

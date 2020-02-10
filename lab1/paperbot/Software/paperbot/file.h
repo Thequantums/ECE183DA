@@ -1,4 +1,4 @@
-# This is a header file from file.cpp
+// This is a header file from file.cpp
 
 #ifndef __FILE_H
 #define __FILE_H
