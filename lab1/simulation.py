@@ -24,34 +24,24 @@ M = 25           # Magnetometer magnitude (+-6)(uT)
 R = 50           # Radius of Wheel (mm)
 L = 90           # Width of Robot (mm)
 
-# Global values for critical angles
-# NOTE: A critical angle is the angle of a line from the cars position
-# to the one of the four corners in the arena. These angles allow us
-# to decide which wall to use when calculating distance measurement
-# of a laser.
-theta_1 = 0      # Critical angle 1 (rad)
-theta_2 = 0      # Critical angle 2 (rad)
-theta_3 = 0      # Critical angle 3 (rad)
-theta_4 = 0      # Critical angle 4 (rad)
-
-# Global value for angular velocity which directly corresponds to gyro reading
-w_curve = 0      # Angular Velocity for State Dynamics
-
 # Global value for STATE
 x = 265            # X coord
 y = 200            # Y coord
-theta = 0        # Heading
+theta = 0          # Heading
+theta_dot = 0      # Angular Velocity
 
 # Global value for NEXT STATE
 x_next = 0       # next X coord
 y_next = 0       # next Y coord
 theta_next = 0   # next Heading
 
+theta_dyn = 0    # Next Angular Velocity
+
 XStateList = []   # state storage for plotting
 YStateList = []   # state storage for plotting
 ThetaStateList = []   # state storage for plotting
 
-#Initialization for Plotter (Graph size, axes position, etc.
+# Initialization for Plotter (Graph size, axes position, etc.
 fig = plt.figure(figsize=(8, 8))
 plot_ax = plt.axes([0.1, 0.2, 0.8, 0.65])
 slider_ax = plt.axes([0.1, 0.05, 0.8, 0.05])
@@ -88,26 +78,20 @@ def state_dynamics(vl, vr):
     # curvature. It also includes a condition for when both wheels are at the same velocity since
     # using the equations on this pair of values would result in dividing by zero
     global L
-    global w_curve
     global theta
     global T
     global x
     global y
+    global theta_dyn
     global x_next
     global y_next
     global theta_next
-    if vl != vr:  # If the robot is following a curved path
-        r_curve = L*(vl+vr)/(2*(vr-vl))  # calculate radius of curvature
-        w_curve = (vr-vl) / L              # calculate angular velocity
-        ccx = x - r_curve*math.sin(theta)   # calculate center of curvature (x coord)
-        ccy = y + r_curve*math.cos(theta)   # calculate center of curvature (y coord)
-        x_next = (x - ccx)*math.cos(w_curve*T)-(y-ccy)*math.sin(w_curve*T) + ccx    # calc next x coord
-        y_next = (x - ccx)*math.sin(w_curve*T)+(y-ccy)*math.cos(w_curve*T) + ccy    # calc next y coord
-        theta_next = theta + w_curve*T  # calc next theta
-    else:   # If the robot is following a straight path
-        x_next = vl*T*math.cos(theta) + x    # calc next x coord
-        y_next = vl*T*math.sin(theta) + y    # calc next y coord
-        theta_next = theta                   # maintain heading
+    x_dyn = vl*math.cos(theta)/2 + vr*math.cos(theta)/2
+    y_dyn = vl*math.sin(theta)/2 + vr*math.sin(theta)/2
+    theta_dyn = -vl/L + vr/L
+    x_next = x + x_dyn*T
+    y_next = y + y_dyn*T
+    theta_next = theta + theta_dyn*T
     return
 
 
@@ -181,56 +165,36 @@ def state_checker(vl, vr):
     return
 
 
-def critical():  # Determines Critical Angles
-    # This function calculates the previously mentioned critical angles, this can
-    # be easily done since the corners of the arena are constants and we are aware of
-    # our current state
-    global B
-    global A
-    global x
-    global y
-    global theta_1
-    global theta_2
-    global theta_3
-    global theta_4
-    theta_1 = math.atan2(B-y, A-x)  # Angle to the top-right corner
-    theta_2 = math.atan2(B-y, -x)  # Angle to the top-left corner
-    theta_3 = math.atan2(-y, -x) + 2*math.pi  # Angle to the bottom-left corner
-    theta_4 = math.atan2(-y, A-x) + 2*math.pi  # Angle to the bottom-right corner
-    return
-
-
 def the_d(special_theta):
     # This function calculates the distance measured by a laser given your current state.
     # It works by comparing the orientation of the laser with the critical angles in order
     # to understand which wall the laser is hitting. Using that we can calculate d using trig
-    global M
+    # global M
     global A
     global B
-    global theta
-    if special_theta <= theta_1:  # Hitting right wall
-        d = (A-x)/math.cos(special_theta)
-    elif special_theta <= theta_2:  # Hitting top wall
-        if special_theta <= math.pi/2:
-            d = (B - y)/math.sin(special_theta)
-        else:
-            d = (B - y)/math.sin(math.pi - special_theta)
-    elif special_theta <= theta_3:  # Hitting left wall
-        if special_theta <= math.pi:
-            d = x / math.cos(math.pi - special_theta)
-        else:
-            d = x / math.cos(special_theta - math.pi)
-    elif special_theta <= theta_4:  # Hitting bottom wall
-        if special_theta <= 3*math.pi/2:
-            d = y / math.sin(special_theta - math.pi)
-        else:
-            d = y / math.sin(2*math.pi - special_theta)
-    else:  # Hitting right wall again
-        d = (A-x) / math.cos(2*math.pi - special_theta)
-    return d
+    # global theta
+    global x
+    d = [0, 0, 0, 0]
+    if special_theta == math.pi/2 or special_theta == 3*math.pi/2:
+        d[1] = 1000000
+        d[3] = 1000000
+    else:
+        d[1] = (B-y)/math.sin(special_theta)
+        d[3] = x/math.sin(special_theta + math.pi)
+    if special_theta == 0 or math.pi:
+        d[0] = 1000000
+        d[2] = 1000000
+    else:
+        d[0] = (A-x)/math.cos(special_theta)
+        d[2] = x/math.cos(special_theta + math.pi)
+    for x in range(4):
+        if d[x] < 0:
+            d[x] = 1000000
+
+    return min(d)
 
 
-def update(a):                  #Function called when slider moves, in order to update plot
+def update(a):              # Function called when slider moves, in order to update plot
     global state_plot
     global XStateList
     global YStateList
@@ -251,9 +215,11 @@ def main():
     global x
     global y
     global theta
+    global theta_dot
     global x_next
     global y_next
     global theta_next
+    global theta_dyn
     global XStateList
     global YStateList
     global ThetaStateList
@@ -284,17 +250,16 @@ def main():
         v_right = pwm_to_velocity(pwmr)  # Get right speed
         state_dynamics(v_left, v_right)  # Update state
         state_checker(v_left, v_right)  # Check validity of update
-        critical()  # Calculate critical values
         d1 = the_d(theta)  # Distance of forward laser, orientation of laser is same as car
         theta_x = theta - math.pi / 2  # Orientation of second laser is -90 degrees of car's orientation
         if theta_x < 0:  # Correct orientation for below 0 degrees and above 360 degrees
             theta_x = theta_x + math.pi * 2
-        elif theta_x > math.pi * 2:
+        elif theta_x >= math.pi * 2:
             theta_x = theta_x - math.pi * 2
         d2 = the_d(theta_x)  # Distance of side laser
         mx = M * math.sin(theta)  # Magnetometer along x-axis
         my = M * math.cos(theta)  # Magnetometer along y-axis
-        gyro = w_curve  # Gyro Reading
+        gyro = theta_dot  # Gyro Reading
         timestamp = T * i
         #  Print out values d1,d2,mx,my,gyro, and timestamp
         wr_file.write(str(round(pwml, 2)) + ', ' + str(round(pwmr, 2)) + ', ' + str(round(d1, 2)) + ', '
@@ -312,6 +277,7 @@ def main():
         elif theta_next > math.pi * 2:
             theta_next = theta_next - math.pi * 2
         theta = theta_next
+        theta_dot = theta_dyn
         ThetaStateList.append(theta)
         i = i + 1
     #####################################################################################################
