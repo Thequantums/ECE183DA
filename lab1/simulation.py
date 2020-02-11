@@ -21,7 +21,7 @@ A = 530          # X ceiling(mm)
 B = 400          # Y ceiling(mm)
 T = .1           # Sampling Period(s)
 M = 25           # Magnetometer magnitude (+-6)(uT)
-R = 50           # Radius of Wheel (mm)
+R = 50  # Radius of Wheel (mm)
 L = 90           # Width of Robot (mm)
 
 # Global values for critical angles
@@ -235,7 +235,7 @@ def update(a):                  #Function called when slider moves, in order to 
     global XStateList
     global YStateList
     global ThetaStateList
-    saan = int(a)
+    sana = int(a)
     state_plot.set_xdata(XStateList[0:sana])  # set new x-coordinates of the plotted points
     state_plot.set_ydata(YStateList[0:sana])  # set new y-coordinates of the plotted points
     plt.arrow(XStateList[sana-1],YStateList[sana-1],-3*math.cos(ThetaStateList[sana-1]),-3*math.sin(ThetaStateList[sana-1]),shape = 'full', width = 0.01, head_width = 1)
