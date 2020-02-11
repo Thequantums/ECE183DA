@@ -43,13 +43,13 @@ outputVal = outputVal.transpose()
 ###################################################
 
 x = [[250,250, 0]]                            #State     (each state of size n) (x,y,theta)
-Pk = [[0,0,0],[0,0,0], [0,0,0]]                #Covariance Matrix    (each element of size nxn)
-Fk = np.array([[0,0,0],[0,0,0], [0,0,0]] )     #Prediction Matrix (from linearization) (size nxn)
-Hk = np.array([[0,0,0],[0,0,0]] )              #Sensor Model (from linearization)(size mxn)
-Qk = np.array([[0,0,0],[0,0,0], [0,0,0]] )     #Environmental Error (from experimentation)(size nxn)
-Rk = np.array([[0,0],[0,0],[0,0]] )              #Sensor Noise (from experimentation)(size nxm)
+Pk = [[1,1,1],[1,1,1], [1,1,1]]                #Covariance Matrix    (each element of size nxn)
+Fk = np.array([[1,0,0],[0,1,0], [0,0,1]] )     #Prediction Matrix (from linearization) (size nxn)
+Hk = np.array([[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0]] )              #Sensor Model (from linearization)(size mxn)
+Qk = np.array([[1,0,0],[0,1,0], [0,0,1]] )     #Environmental Error (from experimentation)(size nxn)
+Rk = np.array([[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]] )              #Sensor Noise (from experimentation)(size nxm)
 K = np.array([])                 #Kalman Gain
-zk = np.array([1,2])             #Sensor Reading (size m)
+zk = np.array([1,2,3,4,5])             #Sensor Reading (size m)
 xPost = np.array([])             #Posteriori State
 PPost = np.array([])             #Posteriori Covariance
 ##########################################################
@@ -112,10 +112,12 @@ def StateDyn(currentState,inVals):
 ########################################################
 
 for i in range(inputVal.shape[0]-1):
+    zk = outputVal[i]
     xPost = StateDyn(x[i],inputVal[i])
     PPost = np.dot(Fk,np.dot(np.array(Pk[i]),Fk.T)) + Qk
     K = np.dot(PPost,np.dot(Hk.T,np.invert(np.dot(Hk,np.dot(PPost,Hk.T)+Rk))))
     x.append(((xPost + np.dot(K,(zk-np.dot(Hk,xPost)))).reshape(3)).tolist())
     Pk.append(PPost - np.dot(K,np.dot(Hk,PPost)))
 print(x)
+print(Pk)
 myfile.close()
