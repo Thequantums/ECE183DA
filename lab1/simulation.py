@@ -176,17 +176,17 @@ def the_d(special_theta):
     global x
     d = [0, 0, 0, 0]
     if special_theta == math.pi/2 or special_theta == 3*math.pi/2:
-        d[1] = 1000000
-        d[3] = 1000000
-    else:
-        d[1] = (B-y)/math.sin(special_theta)
-        d[3] = x/math.sin(special_theta + math.pi)
-    if special_theta == 0 or math.pi:
         d[0] = 1000000
         d[2] = 1000000
     else:
-        d[0] = (A-x)/math.cos(special_theta)
-        d[2] = x/math.cos(special_theta + math.pi)
+        d[0] = (A - x) / math.cos(special_theta)
+        d[2] = -x / math.cos(special_theta)
+    if special_theta == 0 or math.pi:
+        d[1] = 1000000
+        d[3] = 1000000
+    else:
+        d[1] = (B - y) / math.sin(special_theta)
+        d[3] = -x / math.sin(special_theta)
     for x in range(4):
         if d[x] < 0:
             d[x] = 1000000
