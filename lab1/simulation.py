@@ -21,7 +21,7 @@ A = 530          # X ceiling(mm)
 B = 400          # Y ceiling(mm)
 T = .1           # Sampling Period(s)
 M = 25           # Magnetometer magnitude (+-6)(uT)
-R = 50  # Radius of Wheel (mm)
+R = 50           # Radius of Wheel (mm)
 L = 90           # Width of Robot (mm)
 
 # Global value for STATE
@@ -86,12 +86,17 @@ def state_dynamics(vl, vr):
     global x_next
     global y_next
     global theta_next
-    x_dyn = vl*math.cos(theta)/2 + vr*math.cos(theta)/2
-    y_dyn = vl*math.sin(theta)/2 + vr*math.sin(theta)/2
-    theta_dyn = -vl/L + vr/L
+    x_dyn = (vl+vr)*math.cos(theta)/2
+    y_dyn = (vl+vr)*math.sin(theta)/2
+    theta_dyn = (vr-vl)/L
     x_next = x + x_dyn*T
     y_next = y + y_dyn*T
     theta_next = theta + theta_dyn*T
+    if theta_next < 0:  # Correct orientation for below 0 pi and above 2 pi
+        theta_next = theta_next + math.pi * 2
+    elif theta_next > math.pi * 2:
+        theta_next = theta_next - math.pi * 2
+    theta = theta_next
     return
 
 
@@ -167,14 +172,14 @@ def state_checker(vl, vr):
 
 def the_d(special_theta):
     # This function calculates the distance measured by a laser given your current state.
-    # It works by comparing the orientation of the laser with the critical angles in order
-    # to understand which wall the laser is hitting. Using that we can calculate d using trig
-    # global M
+    # It works by calculating the distance to all four walls and choosing the minimum
+    # positive value from these. We ignore negative values because they're invalid and we
+    # want min because it's the first to hit a wall which reflects reality of laser
     global A
     global B
-    # global theta
     global x
-    d = [0, 0, 0, 0]
+    global y
+    d = [0, 0, 0, 0] # initialize to zero
     if special_theta == math.pi/2 or special_theta == 3*math.pi/2: # To handle dividing by zero,  set to mock infinity
         d[0] = 1000000
         d[2] = 1000000
@@ -187,11 +192,11 @@ def the_d(special_theta):
     else:
         d[1] = (B - y) / math.sin(special_theta)
         d[3] = -x / math.sin(special_theta)
-    for x in range(4): # To reject negative values
+    for x in range(4): # To reject negative values, set to mock infinity
         if d[x] < 0:
             d[x] = 1000000
 
-    return min(d) # chooses min pos
+    return min(d)  # chooses min pos
 
 
 def update(a):              # Function called when slider moves, in order to update plot
@@ -226,12 +231,12 @@ def main():
     global state_plot
 
     i = 0  # Run a counter during each iteration to get timestamp
-    # Code in between #'s should be in a loop
-    #################################################################################################
 
     myfile = open("pwm_data.txt", 'r')  # file to read
-    wr_file = open('simulation_data.txt', 'w')  # file to write
+    wr_file = open('simulation_data.txt', 'w')  # file to write observations
+    state_file = open('simulation states', 'w') # file to write states for comparison
     wr_file.write("pwml   pwmr   d1   d2   mx   my   gyro   timestamp\n")
+    state_file.write("x y theta theta_dot\n")
 
     for line in myfile:
         pwml_str = ''
@@ -251,12 +256,12 @@ def main():
         state_dynamics(v_left, v_right)  # Update state
         state_checker(v_left, v_right)  # Check validity of update
         d1 = the_d(theta)  # Distance of forward laser, orientation of laser is same as car
-        theta_x = theta - math.pi / 2  # Orientation of second laser is -90 degrees of car's orientation
-        if theta_x < 0:  # Correct orientation for below 0 degrees and above 360 degrees
-            theta_x = theta_x + math.pi * 2
-        elif theta_x >= math.pi * 2:
-            theta_x = theta_x - math.pi * 2
-        d2 = the_d(theta_x)  # Distance of side laser
+        theta_side = theta - math.pi / 2  # Orientation of second laser is -90 degrees of car's orientation
+        # if theta_x < 0:  # Correct orientation for below 0 degrees and above 360 degrees
+            # theta_x = theta_x + math.pi * 2
+        # elif theta_x >= math.pi * 2:
+            # theta_x = theta_x - math.pi * 2
+        d2 = the_d(theta_side)  # Distance of side laser
         mx = M * math.sin(theta)  # Magnetometer along x-axis
         my = M * math.cos(theta)  # Magnetometer along y-axis
         gyro = theta_dot  # Gyro Reading
@@ -265,24 +270,24 @@ def main():
         wr_file.write(str(round(pwml, 2)) + ', ' + str(round(pwmr, 2)) + ', ' + str(round(d1, 2)) + ', '
                       + str(round(d2, 2)) + ', ' + str(round(mx, 2)) + ', ' + str(round(my, 2))
                       + ', ' + str(round(gyro, 2)) + ', ' + str(round(timestamp, 2)) + "\n")
+        state_file.write(str(round(pwml, 2)) + ', ' + str(round(y, 2)) + ', ' + str(round(theta, 2)) + ', '
+                         + str(round(theta_dot, 2)) + "\n")
         # Update state
         x = x_next
         y = y_next
+        theta = theta_next
 
         XStateList.append(x)
         YStateList.append(y)
 
-        if theta_next < 0:  # Correct orientation for below 0 degrees and above 360 degrees
-            theta_next = theta_next + math.pi * 2
-        elif theta_next > math.pi * 2:
-            theta_next = theta_next - math.pi * 2
-        theta = theta_next
         theta_dot = theta_dyn
+
         ThetaStateList.append(theta)
         i = i + 1
-    #####################################################################################################
+
     myfile.close()
     wr_file.close()
+    state_file.close()
 
     state_plot = plt.plot(XStateList, YStateList, 'r')[0]   #Creates the plot
     a_slider = Slider(slider_ax ,'a' ,0 , len(XStateList), valinit=0, valfmt='%0.0f') #Creates slider with axes, variable, min val, max val, init val, and as integer
