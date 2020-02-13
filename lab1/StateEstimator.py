@@ -199,8 +199,7 @@ for i in range(inputVal.shape[0]-1):
 
     xPost = np.dot(Fk,x[i])+np.dot(Gk,inputVal[i])
     PPost = np.dot(Fk,np.dot(np.array(Pk[i]),Fk.T)) + Qk
-    print((np.dot(np.dot(Hk,PPost), Hk.T) + Rk))
-    K = np.dot(PPost,np.dot(Hk.T,np.invert(np.dot(np.dot(Hk,PPost),Hk.T)+Rk)))
+    K = np.dot(PPost,np.dot(Hk.T,np.linalg.inv(np.dot(np.dot(Hk,PPost), Hk.T) + Rk)))
     x.append(((xPost + np.dot(K,(zk-np.dot(Hk,xPost))))).tolist())
     Pk.append(PPost - np.dot(K,np.dot(Hk,PPost)))
 print(x)
