@@ -121,3 +121,45 @@ for i in range(inputVal.shape[0]-1):
 print(x)
 print(Pk)
 myfile.close()
+
+#####################################################################
+#####################################################################
+#####################################################################
+
+# Xt+1 = FXt + GU + W // X is before observation -
+def next_state_prior(F, X_posterio, G, U, W):
+    linearize_X = np.dot(F, X_posterio)
+    linearize_input = np.dot(G,U)
+    x_next_mean = np.add(np.add(linearize_X, linearize_input), W)
+    return x_next_mean
+
+# Ouput next_P is before observation
+# input P is posteria. P is variance of the state estimation X
+# input F is linearization factor
+# input Q is Variance of the noise for state estimation
+def next_state_P(F, P, Q):
+    #P = FP(F.transpose) + Q
+    next_P = np.add(np.dot(np.dot(F, P), F.transpose()), Q) 
+    return next_P 
+
+#Output is next state posteri
+#X_prior
+# K is kalman gain
+# Z is output from simulation 
+# H is linearization of the 
+def next_state_posterior(X_prior, K, Z, H):
+    return np.add(X_prior, np.dot(K, np.substract(Z, np.dot(H, X_prior))))
+
+#calculate Kalman gain
+# Output Kalman Gain
+# P is the posteri variance
+# H is the linearization jacobian for sensors output
+# R is the variance of the noise
+def kalman_gain(P,H, R)
+    K = np.dot(np.dot(P, H.transpose()), np.invert(np.add(np.dot(np.dot(H,P),H), R)))
+
+
+def main():
+    
+    
+if     
