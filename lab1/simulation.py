@@ -14,6 +14,7 @@
 from matplotlib.widgets import Slider
 
 import math  # Needed for all the trigonometry
+import numpy as np
 import matplotlib.pyplot as plt
 
 #  Global Constants
@@ -23,6 +24,19 @@ T = .1           # Sampling Period(s)
 M = 25           # Magnetometer magnitude (+-6)(uT)
 R = 50           # Radius of Wheel (mm)
 L = 90           # Width of Robot (mm)
+
+# Standard Deviations (square root of variances)
+x_var = 10
+y_var = 10
+theta_var = .01
+theta_dot_var = .01
+
+d1_var = 5
+d2_var = 5
+mx_var = 3
+my_var = 3
+gyro_var = 10
+
 
 # Global value for STATE
 x = 265            # X coord
@@ -86,17 +100,20 @@ def state_dynamics(vl, vr):
     global x_next
     global y_next
     global theta_next
+    global x_var
+    global y_var
+    global theta_var
+    global theta_dot_var
     x_dyn = (vl+vr)*math.cos(theta)/2
     y_dyn = (vl+vr)*math.sin(theta)/2
     theta_dyn = (vr-vl)/L
-    x_next = x + x_dyn*T
-    y_next = y + y_dyn*T
-    theta_next = theta + theta_dyn*T
+    x_next = x + x_dyn*T + np.random.normal(0,x_var)
+    y_next = y + y_dyn*T + np.random.normal(0,y_var)
+    theta_next = theta + theta_dyn*T + np.random.normal(0, theta_var)
     if theta_next < 0:  # Correct orientation for below 0 pi and above 2 pi
         theta_next = theta_next + math.pi * 2
     elif theta_next > math.pi * 2:
         theta_next = theta_next - math.pi * 2
-    theta = theta_next
     return
 
 
@@ -229,6 +246,11 @@ def main():
     global YStateList
     global ThetaStateList
     global state_plot
+    global d1_var
+    global d2_var
+    global mx_var
+    global my_var
+    global gyro_var
 
     i = 0  # Run a counter during each iteration to get timestamp
 
@@ -255,16 +277,16 @@ def main():
         v_right = pwm_to_velocity(pwmr)  # Get right speed
         state_dynamics(v_left, v_right)  # Update state
         state_checker(v_left, v_right)  # Check validity of update
-        d1 = the_d(theta)  # Distance of forward laser, orientation of laser is same as car
+        d1 = the_d(theta) + np.random.normal(0, d1_var)  # Distance of forward laser, orientation of laser is same as car
         theta_side = theta - math.pi / 2  # Orientation of second laser is -90 degrees of car's orientation
         # if theta_x < 0:  # Correct orientation for below 0 degrees and above 360 degrees
             # theta_x = theta_x + math.pi * 2
         # elif theta_x >= math.pi * 2:
             # theta_x = theta_x - math.pi * 2
-        d2 = the_d(theta_side)  # Distance of side laser
-        mx = M * math.sin(theta)  # Magnetometer along x-axis
-        my = M * math.cos(theta)  # Magnetometer along y-axis
-        gyro = theta_dot  # Gyro Reading
+        d2 = the_d(theta_side) + np.random.normal(0, d2_var)  # Distance of side laser
+        mx = M * math.sin(theta) + np.random.normal(0, mx_var) # Magnetometer along x-axis
+        my = M * math.cos(theta) + np.random.normal(0, my_var) # Magnetometer along y-axis
+        gyro = theta_dot + np.random.normal(0, gyro_var)  # Gyro Reading
         timestamp = T * i
         #  Print out values d1,d2,mx,my,gyro, and timestamp
         wr_file.write(str(round(pwml, 2)) + ', ' + str(round(pwmr, 2)) + ', ' + str(round(d1, 2)) + ', '
@@ -280,7 +302,7 @@ def main():
         XStateList.append(x)
         YStateList.append(y)
 
-        theta_dot = theta_dyn
+        theta_dot = theta_dyn + np.random.normal(0, theta_dot_var)
 
         ThetaStateList.append(theta)
         i = i + 1
