@@ -256,7 +256,7 @@ def main():
 
     myfile = open("pwm_data.txt", 'r')  # file to read
     wr_file = open('simulation_data.txt', 'w')  # file to write observations
-    state_file = open('simulation states', 'w') # file to write states for comparison
+    state_file = open('simulation_states', 'w') # file to write states for comparison
     wr_file.write("pwml   pwmr   d1   d2   mx   my   gyro   timestamp\n")
     state_file.write("x y theta theta_dot\n")
 
