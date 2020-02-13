@@ -42,8 +42,8 @@ Rw = 90
 L = 90
 d = L/2
 T = 0.1
-A = 500
-B = 430
+A = 530
+B = 400
 ###################################################
 # Kalman variables
 ###################################################
@@ -142,39 +142,39 @@ def H_Update(state):
     global L
     global w
     d = [0, 0, 0, 0]
-    if state[2] == math.pi / 2 or state[2] == 3 * math.pi / 2:
-        d[1] = 1000000
-        d[3] = 1000000
-    else:
-        d[1] = (B - state[1]) / math.sin(state[2])
-        d[3] = state[0] / math.sin(state[2] + math.pi)
-    if state[2] == 0 or math.pi:
+    if state[2] == math.pi / 2 or state[2] == 3 * math.pi / 2:  # To handle dividing by zero,  set to mock infinity
         d[0] = 1000000
         d[2] = 1000000
     else:
         d[0] = (A - state[0]) / math.cos(state[2])
-        d[2] = state[0] / math.cos(state[2] + math.pi)
-    for x in range(4):
+        d[2] = -state[0] / math.cos(state[2])
+    if state[2] == 0 or math.pi:  # To handle dividing by zero, set to mock infinity
+        d[1] = 1000000
+        d[3] = 1000000
+    else:
+        d[1] = (B - state[1]) / math.sin(state[2])
+        d[3] = -state[0] / math.sin(state[2])
+    for x in range(4):  # To reject negative values, set to mock infinity
         if d[x] < 0:
             d[x] = 1000000
 
     selD = d.index(min(d))
 
-    if selD == 1:
+    if selD == 0:
         MAA = -1/math.cos(state[2])
         MBA = 0
-        MCA = (L-state[0])*(math.sin(state[2])/pow(math.cos(state[2]),2.0))
+        MCA = (A-state[0])*(math.sin(state[2])/pow(math.cos(state[2]),2.0))
         MAB = -1/math.sin(state[2])
         MBB = 0
-        MCB = -(L-state[0])*(math.cos(state[2])/pow(math.sin(state[2]),2.0))
-    elif selD == 2:
+        MCB = -(A-state[0])*(math.cos(state[2])/pow(math.sin(state[2]),2.0))
+    elif selD == 1:
         MAA = 0
         MBA = -1/math.sin(state[2])
-        MCA = -(w-state[1])*(math.cos(state[2])/pow(math.sin(state[2]),2.0))
+        MCA = -(B-state[1])*(math.cos(state[2])/pow(math.sin(state[2]),2.0))
         MAB = 0
         MBB = 1/math.cos(state[2])
-        MCB = -(w-state[1])*(math.cos(state[2])/pow(math.sin(state[2]),2.0))
-    elif selD == 3:
+        MCB = -(B-state[1])*(math.cos(state[2])/pow(math.sin(state[2]),2.0))
+    elif selD == 2:
         MAA = -1/math.cos(state[2])
         MBA = 0
         MCA = -state[0]*(math.sin(state[2])/pow(math.cos(state[2]),2.0))
@@ -265,12 +265,14 @@ def main():
         Fk = F_Update(x[i],inputVal[i])
         Gk = G_Update(x[i])
         Hk = H_Update(x[i])
-
-        xPost = np.add(np.dot(Fk,x[i]),np.dot(Gk,inputVal[i]))
-        PPost = np.add(np.dot(np.dot(Fk,np.array(Pk[i])),Fk.T), Qk)
-        K = np.dot(np.dot(PPost, Hk.T),np.linalg.inv(np.add(np.dot(np.dot(Hk,PPost), Hk.T),Rk)))
-        x.append((np.add(xPost, np.dot(K,(np.subtract(zk,np.dot(Hk,xPost)))))).tolist())
-        Pk.append(np.subtract(PPost, np.dot(np.dot(K,Hk),PPost)).tolist())
+        xPri = np.add(np.dot(Fk,x[i]),np.dot(Gk,inputVal[i]))
+        PPri = np.add(np.dot(np.dot(Fk,np.array(Pk[i])),Fk.T), Qk)
+        K = np.dot(np.dot(PPri, Hk.T),np.linalg.inv(np.add(np.dot(np.dot(Hk,PPri), Hk.T),Rk)))
+        xPost = (np.add(xPri, np.dot(K,(np.subtract(zk,np.dot(Hk,xPri))))))
+        PPost = np.subtract(PPri, np.dot(np.dot(K,Hk),PPri))
+        print(xPost)
+        x.append(xPost.tolist())
+        Pk.append(PPost.tolist())
     print(x)
     print(Pk)
     myfile.close()
