@@ -38,11 +38,12 @@ outputVal = outputVal.transpose()
 #Outputs inputVal array and outputVal array
 ###################################################
 
-Rw = 1
+Rw = 50
 d = 1
-T = 1
-A = 1
-B = 1
+L = 90
+T = 0.1
+A = 530
+B = 400
 ###################################################
 # Kalman variables
 ###################################################
@@ -52,7 +53,7 @@ Pk = [[1,1,1,1],[1,1,1,1], [1,1,1,1], [1,1,1,1]]                #Covariance Matr
 Fk = np.array([])     #Prediction Matrix (from linearization) (size nxn)
 Gk = np.array([])   #input matrix
 Hk = np.array([])              #Sensor Model (from linearization)(size mxn)
-Qk = np.array([[1,1,1,1],[1,1,1,1], [1,1,1,1], [1,1,1,1]] )     #Environmental Error (from experimentation)(size nxn)
+Qk = np.array([[1,0,0,0],[0,1,0,0], [0,0,1,0], [0,0,0,1]] )     #Environmental Error (from experimentation)(size nxn)
 Rk = np.array([[1,0,0],[0,1,0],[0,0,1]] )              #Sensor Noise (from experimentation)(size nxm)
 K = np.array([])                 #Kalman Gain
 zk = np.array([1,2,3,4,5])             #Sensor Reading (size m)
@@ -190,19 +191,22 @@ def H_Update(state):
 #Implementation of Kalman Filter (xtemp is placeholder)
 ########################################################
 
+def main():
+    for i in range(inputVal.shape[0]-1):
+        zk = outputVal[i]
+        Fk = F_Update(x[i],inputVal[i])
+        Gk = G_Update(x[i])
+        Hk = H_Update(x[i])
 
-for i in range(inputVal.shape[0]-1):
-    zk = outputVal[i]
-    Fk = F_Update(x[i],inputVal[i])
-    Gk = G_Update(x[i])
-    Hk = H_Update(x[i])
+        xPost = np.dot(Fk,x[i])+np.dot(Gk,inputVal[i+1])
+        PPost = np.dot(np.dot(Fk,np.array(Pk[i])),Fk.T) + Qk
+        K = np.dot(np.dot(PPost, Hk.T),np.linalg.inv(np.dot(np.dot(Hk,PPost), Hk.T) + Rk))
+        x.append((xPost + np.dot(K,(zk-np.dot(Hk,xPost)))).tolist())
+        Pk.append((PPost - np.dot(np.dot(K,Hk),PPost)).tolist())
+    print(x)
+    print(Pk)
+    myfile.close()
 
-    xPost = np.dot(Fk,x[i])+np.dot(Gk,inputVal[i])
-    PPost = np.dot(Fk,np.dot(np.array(Pk[i]),Fk.T)) + Qk
-    K = np.dot(PPost,np.dot(Hk.T,np.linalg.inv(np.dot(np.dot(Hk,PPost), Hk.T) + Rk)))
-    x.append(((xPost + np.dot(K,(zk-np.dot(Hk,xPost))))).tolist())
-    Pk.append(PPost - np.dot(K,np.dot(Hk,PPost)))
-print(x)
-print(Pk)
-myfile.close()
+if __name__ == "__main__":
+    main()
 
