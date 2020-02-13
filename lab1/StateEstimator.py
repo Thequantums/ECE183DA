@@ -49,11 +49,11 @@ B = 1
 
 x = [[250,250, 1,0]]                            #State     (each state of size n) (x,y,theta,thetaDot)
 Pk = [[1,1,1,1],[1,1,1,1], [1,1,1,1], [1,1,1,1]]                #Covariance Matrix    (each element of size nxn)
-Fk = np.array([[1,1,1,1],[1,1,1,1], [1,1,1,1], [1,1,1,1]] )     #Prediction Matrix (from linearization) (size nxn)
-Gk = np.array([[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]] )   #input matrix
-Hk = np.array([[1,1,1,1],[1,1,1,1],[1,1,1,1]] )              #Sensor Model (from linearization)(size mxn)
+Fk = np.array([])     #Prediction Matrix (from linearization) (size nxn)
+Gk = np.array([])   #input matrix
+Hk = np.array([])              #Sensor Model (from linearization)(size mxn)
 Qk = np.array([[1,1,1,1],[1,1,1,1], [1,1,1,1], [1,1,1,1]] )     #Environmental Error (from experimentation)(size nxn)
-Rk = np.array([[0,0,0],[0,0,0],[0,0,0],[0,0,0]] )              #Sensor Noise (from experimentation)(size nxm)
+Rk = np.array([[1,0,0],[0,1,0],[0,0,1]] )              #Sensor Noise (from experimentation)(size nxm)
 K = np.array([])                 #Kalman Gain
 zk = np.array([1,2,3,4,5])             #Sensor Reading (size m)
 xPost = np.array([])             #Posteriori State
@@ -108,7 +108,7 @@ def StateDyn(currentState,inVals):
         x_next = vl * T * math.cos(currentState[2]) + currentState[0]  # calc next x coord
         y_next = vl * T * math.sin(currentState[2]) + currentState[1]  # calc next y coord
         theta_next = currentState[2]  # maintain heading
-    xout =[x_next,y_next,theta_next]
+    xout =[x_next,y_next,theta_next,0]
     ####
     return xout
 def F_Update(state,inValues):
@@ -193,56 +193,17 @@ def H_Update(state):
 
 for i in range(inputVal.shape[0]-1):
     zk = outputVal[i]
-    Ft = F_Update(x[i],inputVal[i])
-    Gt = G_Update(x[i])
-    Ht = H_Update(x[i])
-    xPost = StateDyn(x[i],inputVal[i])
+    Fk = F_Update(x[i],inputVal[i])
+    Gk = G_Update(x[i])
+    Hk = H_Update(x[i])
+
+    xPost = np.dot(Fk,x[i])+np.dot(Gk,inputVal[i])
     PPost = np.dot(Fk,np.dot(np.array(Pk[i]),Fk.T)) + Qk
-    K = np.dot(PPost,np.dot(Hk.T,np.invert(np.dot(Hk,np.dot(PPost,Hk.T)+Rk))))
-    x.append(((xPost + np.dot(K,(zk-np.dot(Hk,xPost)))).reshape(3)).tolist())
+    print((np.dot(np.dot(Hk,PPost), Hk.T) + Rk))
+    K = np.dot(PPost,np.dot(Hk.T,np.invert(np.dot(np.dot(Hk,PPost),Hk.T)+Rk)))
+    x.append(((xPost + np.dot(K,(zk-np.dot(Hk,xPost))))).tolist())
     Pk.append(PPost - np.dot(K,np.dot(Hk,PPost)))
 print(x)
 print(Pk)
 myfile.close()
 
-#####################################################################
-#####################################################################
-#####################################################################
-
-# Xt+1 = FXt + GU + W // X is before observation -
-def next_state_prior(F, X_posterio, G, U, W):
-    linearize_X = np.dot(F, X_posterio)
-    linearize_input = np.dot(G,U)
-    x_next_mean = np.add(np.add(linearize_X, linearize_input), W)
-    return x_next_mean
-
-# Ouput next_P is before observation
-# input P is posteria. P is variance of the state estimation X
-# input F is linearization factor
-# input Q is Variance of the noise for state estimation
-def next_state_P(F, P, Q):
-    #P = FP(F.transpose) + Q
-    next_P = np.add(np.dot(np.dot(F, P), F.transpose()), Q) 
-    return next_P 
-
-#Output is next state posteri
-#X_prior
-# K is kalman gain
-# Z is output from simulation 
-# H is linearization of the 
-def next_state_posterior(X_prior, K, Z, H):
-    return np.add(X_prior, np.dot(K, np.substract(Z, np.dot(H, X_prior))))
-
-#calculate Kalman gain
-# Output Kalman Gain
-# P is the posteri variance
-# H is the linearization jacobian for sensors output
-# R is the variance of the noise
-def kalman_gain(P,H, R)
-    K = np.dot(np.dot(P, H.transpose()), np.invert(np.add(np.dot(np.dot(H,P),H), R)))
-
-
-def main():
-    
-    
-if     
