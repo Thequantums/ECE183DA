@@ -27,7 +27,7 @@ L = 90           # Width of Robot (mm)
 # Global value for STATE
 x = 265            # X coord
 y = 200            # Y coord
-theta = 0          # Heading
+theta = 1          # Heading
 theta_dot = 0      # Angular Velocity
 
 # Global value for NEXT STATE

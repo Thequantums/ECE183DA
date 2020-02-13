@@ -31,23 +31,29 @@ for line in myfile:
 
 
 inputVal = np.array([pmwL, pmwR])
-outputVal = np.array([d1, d2, mx, my, gyro])
+outputVal = np.array([d1, d2, gyro])
 inputVal = inputVal.transpose()
 outputVal = outputVal.transpose()
 ###################################################
 #Outputs inputVal array and outputVal array
 ###################################################
 
+Rw = 1
+d = 1
+T = 1
+A = 1
+B = 1
 ###################################################
 # Kalman variables
 ###################################################
 
-x = [[250,250, 0]]                            #State     (each state of size n) (x,y,theta)
-Pk = [[1,1,1],[1,1,1], [1,1,1]]                #Covariance Matrix    (each element of size nxn)
-Fk = np.array([[1,0,0],[0,1,0], [0,0,1]] )     #Prediction Matrix (from linearization) (size nxn)
-Hk = np.array([[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0]] )              #Sensor Model (from linearization)(size mxn)
-Qk = np.array([[1,0,0],[0,1,0], [0,0,1]] )     #Environmental Error (from experimentation)(size nxn)
-Rk = np.array([[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]] )              #Sensor Noise (from experimentation)(size nxm)
+x = [[250,250, 1,0]]                            #State     (each state of size n) (x,y,theta,thetaDot)
+Pk = [[1,1,1,1],[1,1,1,1], [1,1,1,1], [1,1,1,1]]                #Covariance Matrix    (each element of size nxn)
+Fk = np.array([[1,1,1,1],[1,1,1,1], [1,1,1,1], [1,1,1,1]] )     #Prediction Matrix (from linearization) (size nxn)
+Gk = np.array([[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]] )   #input matrix
+Hk = np.array([[1,1,1,1],[1,1,1,1],[1,1,1,1]] )              #Sensor Model (from linearization)(size mxn)
+Qk = np.array([[1,1,1,1],[1,1,1,1], [1,1,1,1], [1,1,1,1]] )     #Environmental Error (from experimentation)(size nxn)
+Rk = np.array([[0,0,0],[0,0,0],[0,0,0],[0,0,0]] )              #Sensor Noise (from experimentation)(size nxm)
 K = np.array([])                 #Kalman Gain
 zk = np.array([1,2,3,4,5])             #Sensor Reading (size m)
 xPost = np.array([])             #Posteriori State
@@ -105,14 +111,91 @@ def StateDyn(currentState,inVals):
     xout =[x_next,y_next,theta_next]
     ####
     return xout
+def F_Update(state,inValues):
+    global Rw
+    global d
+    global T
+    a = Rw*(inValues[0]+inValues[1])/2
+    b = Rw*(inValues[1]-inValues[0])/(2*d)
+    Ft = np.array([[1,0,-a*math.sin(state[2])*T,0],[0,1,a*math.cos(state[2])*T,0],[0,0,1,0],[0,0,0,0]])
+    return Ft
 
+
+def G_Update(state):
+    global Rw
+    global d
+    global T
+    Gt = np.array([[Rw*math.cos(state[2])*T/2,Rw*math.cos(state[2])*T/2],[Rw*math.sin(state[2])*T/2,Rw*math.sin(state[2])*T/2],[-Rw*T/(2*d),Rw*T/(2*d)],[-Rw/(2*d),Rw/(2*d)]])
+    return Gt
+
+
+def H_Update(state):
+    global A
+    global B
+    global L
+    global w
+    d = [0, 0, 0, 0]
+    if state[2] == math.pi / 2 or state[2] == 3 * math.pi / 2:
+        d[1] = 1000000
+        d[3] = 1000000
+    else:
+        d[1] = (B - state[1]) / math.sin(state[2])
+        d[3] = state[0] / math.sin(state[2] + math.pi)
+    if state[2] == 0 or math.pi:
+        d[0] = 1000000
+        d[2] = 1000000
+    else:
+        d[0] = (A - state[0]) / math.cos(state[2])
+        d[2] = state[0] / math.cos(state[2] + math.pi)
+    for x in range(4):
+        if d[x] < 0:
+            d[x] = 1000000
+
+    selD = d.index(min(d))
+
+    if selD == 1:
+        MAA = -1/math.cos(state[2])
+        MBA = 0
+        MCA = (L-state[0])*(math.sin(state[2])/pow(math.cos(state[2]),2.0))
+        MAB = -1/math.sin(state[2])
+        MBB = 0
+        MCB = -(L-state[0])*(math.cos(state[2])/pow(math.sin(state[2]),2.0))
+    elif selD == 2:
+        MAA = 0
+        MBA = -1/math.sin(state[2])
+        MCA = -(w-state[1])*(math.cos(state[2])/pow(math.sin(state[2]),2.0))
+        MAB = 0
+        MBB = 1/math.cos(state[2])
+        MCB = -(w-state[1])*(math.cos(state[2])/pow(math.sin(state[2]),2.0))
+    elif selD == 3:
+        MAA = -1/math.cos(state[2])
+        MBA = 0
+        MCA = -state[0]*(math.sin(state[2])/pow(math.cos(state[2]),2.0))
+        MAB = -1/math.sin(state[2])
+        MBB = 0
+        MCB = state[0]*(math.cos(state[2])/pow(math.sin(state[2]),2.0))
+    else:
+        MAA = 0
+        MBA = -1/math.sin(state[2])
+        MCA = state[1]*(math.cos(state[2])/pow(math.sin(state[2]),2.0))
+        MAB = 0
+        MBB = 1/math.cos(state[2])
+        MCB = state[1]*(math.sin(state[2])/pow(math.cos(state[2]),2.0))
+
+    Ht = np.array([[MAA,MBA,MCA,0],[MAB,MBB,MCB,0],[0,0,0,1]])
+
+    return Ht
 
 ########################################################
 #Implementation of Kalman Filter (xtemp is placeholder)
 ########################################################
 
+
 for i in range(inputVal.shape[0]-1):
     zk = outputVal[i]
+    Ft = F_Update(x[i],inputVal[i])
+    Gt = G_Update(x[i])
+    Ht = H_Update(x[i])
     xPost = StateDyn(x[i],inputVal[i])
     PPost = np.dot(Fk,np.dot(np.array(Pk[i]),Fk.T)) + Qk
     K = np.dot(PPost,np.dot(Hk.T,np.invert(np.dot(Hk,np.dot(PPost,Hk.T)+Rk))))
