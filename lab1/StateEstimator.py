@@ -265,7 +265,7 @@ def main():
         Fk = F_Update(x[i],inputVal[i])
         Gk = G_Update(x[i])
         Hk = H_Update(x[i])
-        xPri = np.dot(Fk,x[i])
+        xPri = np.add(np.dot(Fk,x[i]),np.dot(Gk,inputVal[i]))
         PPri = np.add(np.dot(np.dot(Fk,np.array(Pk[i])),Fk.T), Qk)
         K = np.dot(np.dot(PPri, Hk.T),np.linalg.inv(np.add(np.dot(np.dot(Hk,PPri), Hk.T),Rk)))
         xPost = (np.add(xPri, np.dot(K,(np.subtract(zk,np.dot(Hk,xPri))))))
