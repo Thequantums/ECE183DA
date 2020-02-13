@@ -14,8 +14,8 @@
 from matplotlib.widgets import Slider
 
 import math  # Needed for all the trigonometry
-import numpy as np
-import matplotlib.pyplot as plt
+import numpy as np # Needed for the uncertainty
+import matplotlib.pyplot as plt # for plotter
 
 #  Global Constants
 A = 530          # X ceiling(mm)
