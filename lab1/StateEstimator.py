@@ -38,18 +38,18 @@ outputVal = outputVal.transpose()
 #Outputs inputVal array and outputVal array
 ###################################################
 
-Rw = 50
-d = 1
-L = 1
-T = 0.01
+Rw = 90
+L = 90
+d = L/2
+T = 0.1
 A = 500
 B = 430
 ###################################################
 # Kalman variables
 ###################################################
 
-x = [[200,200, 1,0]]                            #State     (each state of size n) (x,y,theta,thetaDot)
-Pk = [[0,0,0,0],[0,0,0,0], [0,0,0,0], [0,0,0,0]]                #Covariance Matrix    (each element of size nxn)
+x = [[265,200, 1,0]]                            #State     (each state of size n) (x,y,theta,thetaDot)
+Pk = [[1000,0,0,0],[0,1000,0,0], [0,0,1000,0], [0,0,0,1000]]                #Covariance Matrix    (each element of size nxn)
 Fk = np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])     #Prediction Matrix (from linearization) (size nxn)
 Gk = np.array([])   #input matrix
 Hk = np.array([])              #Sensor Model (from linearization)(size mxn)
@@ -240,15 +240,35 @@ def kalman_gain(P,H, R):
 
 
 def main():
+    for line in myfile:
+        if line == 'pwml   pwmr   d1   d2   mx   my   gyro   timestamp\n':
+            pass
+        else:
+            data = line.split(',')
+            pmwL.append(float(data[0]))
+            pmwR.append(float(data[1]))
+            d1.append(float(data[2]))
+            d2.append(float(data[3]))
+            mx.append(float(data[4]))
+            my.append(float(data[5]))
+            gyro.append(float(data[6]))
+            timestamp.append(float(data[7].rstrip('\n')))
+
+    inputVal = np.array([pmwL, pmwR])
+    outputVal = np.array([d1, d2, gyro])
+    inputVal = inputVal.transpose()
+    outputVal = outputVal.transpose()
+
+
     for i in range(inputVal.shape[0]-1):
-        zk = outputVal[i+1]
-        Fk = F_Update(x[i],inputVal[i+1])
+        zk = outputVal[i]
+        Fk = F_Update(x[i],inputVal[i])
         Gk = G_Update(x[i])
         Hk = H_Update(x[i])
 
-        xPost = np.add(np.dot(Fk,x[i]),np.dot(Gk,inputVal[i+1]))
+        xPost = np.add(np.dot(Fk,x[i]),np.dot(Gk,inputVal[i]))
         PPost = np.add(np.dot(np.dot(Fk,np.array(Pk[i])),Fk.T), Qk)
-        K = np.dot(np.dot(PPost, Hk.T),np.linalg.inv(np.add(np.dot(np.dot(Hk,PPost), Hk.T), Rk)))
+        K = np.dot(np.dot(PPost, Hk.T),np.linalg.inv(np.add(np.dot(np.dot(Hk,PPost), Hk.T),Rk)))
         x.append((np.add(xPost, np.dot(K,(np.subtract(zk,np.dot(Hk,xPost)))))).tolist())
         Pk.append(np.subtract(PPost, np.dot(np.dot(K,Hk),PPost)).tolist())
     print(x)

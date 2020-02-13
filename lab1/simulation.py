@@ -292,13 +292,15 @@ def main():
         wr_file.write(str(round(pwml, 2)) + ', ' + str(round(pwmr, 2)) + ', ' + str(round(d1, 2)) + ', '
                       + str(round(d2, 2)) + ', ' + str(round(mx, 2)) + ', ' + str(round(my, 2))
                       + ', ' + str(round(gyro, 2)) + ', ' + str(round(timestamp, 2)) + "\n")
-        state_file.write(str(round(x, 2)) + ', ' + str(round(y, 2)) + ', ' + str(round(theta, 2)) + ', '
-                         + str(round(theta_dot, 2)) + "\n")
+
+
         # Update state
+
         x = x_next
         y = y_next
         theta = theta_next
-
+        state_file.write(str(round(x, 2)) + ', ' + str(round(y, 2)) + ', ' + str(round(theta, 2)) + ', '
+                         + str(round(theta_dot, 2)) + "\n")
         XStateList.append(x)
         YStateList.append(y)
 
