@@ -243,7 +243,7 @@ def next_state_posterior(X_prior, K, Z, H):
 # P is the posteri variance
 # H is the linearization jacobian for sensors output
 # R is the variance of the noise
-def kalman_gain(P,H, R)
+def kalman_gain(P,H, R):
     K = np.dot(np.dot(P, H.transpose()), np.linalg.inv(np.add(np.dot(np.dot(H,P),H), R)))
 
 
