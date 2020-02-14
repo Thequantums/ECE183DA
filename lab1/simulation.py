@@ -22,7 +22,7 @@ A = 530          # X ceiling(mm)
 B = 400          # Y ceiling(mm)
 T = .1           # Sampling Period(s)
 M = 25           # Magnetometer magnitude (+-6)(uT)
-R = 40           # Radius of Wheel (mm)
+R = 20           # Radius of Wheel (mm)
 L = 85           # Width of Robot (mm)
 
 # Standard Deviations (square root of variances)
