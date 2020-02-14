@@ -11,11 +11,11 @@
 # front of the car, laser distance to the side of the car, magnetometer along
 # x and y, and gyroscope reading for rotation along z-axis.
 # #####################################################################################
-from matplotlib.widgets import Slider
+#from matplotlib.widgets import Slider
 
 import math  # Needed for all the trigonometry
 import numpy as np # Needed for the uncertainty
-import matplotlib.pyplot as plt # for plotter
+#import matplotlib.pyplot as plt # for plotter
 
 #  Global Constants
 A = 530          # X ceiling(mm)
@@ -31,8 +31,8 @@ y_var = .1
 theta_var = .01
 theta_dot_var = .001
 
-d1_var = 2
-d2_var = 2
+d1_var = 1.5
+d2_var = 1.5
 mx_var = 3
 my_var = 3
 gyro_var = .01
@@ -56,11 +56,11 @@ YStateList = []   # state storage for plotting
 ThetaStateList = []   # state storage for plotting
 
 # Initialization for Plotter (Graph size, axes position, etc.
-fig = plt.figure(figsize=(8, 8))
-plot_ax = plt.axes([0.1, 0.2, 0.8, 0.65])
-slider_ax = plt.axes([0.1, 0.05, 0.8, 0.05])
-plt.axes(plot_ax)
-state_plot, = plt.plot(XStateList, YStateList, 'r')
+#fig = plt.figure(figsize=(8, 8))
+#plot_ax = plt.axes([0.1, 0.2, 0.8, 0.65])
+#slider_ax = plt.axes([0.1, 0.05, 0.8, 0.05])
+#plt.axes(plot_ax)
+#state_plot, = plt.plot(XStateList, YStateList, 'r')
 
 
 def pwm_to_velocity(pwm):
@@ -219,16 +219,16 @@ def the_d(special_theta):
     return min(d)  # chooses min pos
 
 
-def update(a):              # Function called when slider moves, in order to update plot
-    global state_plot
-    global XStateList
-    global YStateList
-    global ThetaStateList
-    sana = int(a)
-    state_plot.set_xdata(XStateList[0:sana])  # set new x-coordinates of the plotted points
-    state_plot.set_ydata(YStateList[0:sana])  # set new y-coordinates of the plotted points
-    plt.arrow(XStateList[sana-1],YStateList[sana-1],-3*math.cos(ThetaStateList[sana-1]),-3*math.sin(ThetaStateList[sana-1]),shape = 'full', width = 0.01, head_width = 1)
-    fig.canvas.draw_idle()  # redraw the plot
+#def update(a):              # Function called when slider moves, in order to update plot
+    #global state_plot
+    #global XStateList
+    #global YStateList
+    #global ThetaStateList
+    #sana = int(a)
+    #state_plot.set_xdata(XStateList[0:sana])  # set new x-coordinates of the plotted points
+    #state_plot.set_ydata(YStateList[0:sana])  # set new y-coordinates of the plotted points
+    #plt.arrow(XStateList[sana-1],YStateList[sana-1],-3*math.cos(ThetaStateList[sana-1]),-3*math.sin(ThetaStateList[sana-1]),shape = 'full', width = 0.01, head_width = 1)
+    #fig.canvas.draw_idle()  # redraw the plot
 
 
 def main():
@@ -263,7 +263,8 @@ def main():
     state_file = open('simulation_states', 'w') # file to write states for comparison
     wr_file.write("pwml   pwmr   d1   d2   mx   my   gyro   timestamp\n")
     state_file.write("x y theta theta_dot\n")
-
+    state_file.write(str(round(x, 2)) + ', ' + str(round(y, 2)) + ', ' + str(round(theta, 2)) + ', '
+                     + str(round(theta_dot, 2)) + "\n")
     for line in myfile:
         pwml_str = ''
         pwmr_str = ''
@@ -305,25 +306,25 @@ def main():
         theta = theta_next
         state_file.write(str(round(x, 2)) + ', ' + str(round(y, 2)) + ', ' + str(round(theta, 2)) + ', '
                          + str(round(theta_dot, 2)) + "\n")
-        XStateList.append(x)
-        YStateList.append(y)
+        #XStateList.append(x)
+        #YStateList.append(y)
 
         theta_dot = theta_dyn + np.random.normal(0, theta_dot_var)
 
-        ThetaStateList.append(theta)
+        #ThetaStateList.append(theta)
         i = i + 1
 
     myfile.close()
     wr_file.close()
     state_file.close()
 
-    state_plot = plt.plot(XStateList, YStateList, 'r')[0]   #Creates the plot
-    a_slider = Slider(slider_ax ,'a' ,0 , len(XStateList), valinit=0, valfmt='%0.0f') #Creates slider with axes, variable, min val, max val, init val, and as integer
+    #state_plot = plt.plot(XStateList, YStateList, 'r')[0]   #Creates the plot
+    #a_slider = Slider(slider_ax ,'a' ,0 , len(XStateList), valinit=0, valfmt='%0.0f') #Creates slider with axes, variable, min val, max val, init val, and as integer
 
-    a_slider.on_changed(update) #update the plot when the slider changes
-    plt.show()
-    print(XStateList)
-    print(YStateList)
+    #a_slider.on_changed(update) #update the plot when the slider changes
+    #plt.show()
+    #print(XStateList)
+    #print(YStateList)
 
 
 if __name__ == "__main__":

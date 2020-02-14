@@ -12,14 +12,14 @@ gyro = []
 timestamp = []
 data = []
 
-w_x = 10
-w_y = 10
-w_theta = 10
-w_theta_dot = 10
+w_x = .01
+w_y = .01
+w_theta = .001
+w_theta_dot = .000001
 
-v_d1 = 5
-v_d2 = 5
-v_gyro = .1
+v_d1 = 2.25
+v_d2 = 2.25
+v_gyro = .01
 #######################################################
 # Reads File into individual arrays for input and output
 #######################################################
@@ -252,7 +252,10 @@ def h_update(state):
 
 
 def main():
+    print('hi')
     myfile = open("simulation_data.txt", 'r')  # file to read
+    state_file_2 = open('EKF_states', 'w')  # file to write states for comparison
+    state_file_2.write("x y theta theta_dot\n")
     global Fk
     global Gk
     global Hk
@@ -297,11 +300,13 @@ def main():
         PPost = np.dot(np.subtract(id_mat, np.dot(K, Hk)), Pk)
         x_best = xPost
         Pk = PPost
-        x_estimates.append(x_best.tolist())
-        P_estimates.append(Pk.tolist())
-    print(x_estimates)
-    print(P_estimates)
-
+        state_file_2.write(str(round(x_best[0][0], 2)) + ', ' + str(round(x_best[1][0], 2)) + ', '
+                           + str(round(x_best[2][0], 2)) + ',' + str(round(x_best[3][0], 2)) + "\n")
+        #x_estimates.append(x_best.tolist())
+        #P_estimates.append(Pk.tolist())
+    #print(x_estimates)
+    #print(P_estimates)
+    state_file_2.close()
     myfile.close()
 
 
