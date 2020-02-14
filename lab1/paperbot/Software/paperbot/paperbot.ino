@@ -444,9 +444,12 @@ void loop() {
 //*************Writting sensors' data to website************************************
 
   //Using websocket
-   char* sensors_output;  
-   sprintf(sensors_output, "Lidar 1 rang(mm): %.2f, Lidar 2: %.2f, Heading: %.2f, Gyro_Data: %.2f.\n", (1.0 * sensor.readRangeSingleMillimeters()), (1.0 * sensor2.readRangeSingleMillimeters()), headingDegrees,(float)((gyro_data[2] * 250) / 32768));
-   wsSend(client_id, sensors_output);
+   char sensors_output[20];  
+   //sprintf(sensors_output, "Lidar 1 rang(mm): %.2f, Lidar 2: %.2f, Heading: %.2f, Gyro_Data: %.2f.\n", (1.0 * sensor.readRangeSingleMillimeters()), (1.0 * sensor2.readRangeSingleMillimeters()), headingDegrees,(float)((gyro_data[2] * 250) / 32768));
+  //Serial.println(sensors_output);
+  sprintf(sensors_output, "Range1: %.2f, Range2:  %.2f, Degree: %.2f, gyro(z): %.2f", (1.0 * sensor.readRangeSingleMillimeters()), (1.0 * sensor2.readRangeSingleMillimeters()), headingDegrees,(float)((gyro_data[2] * 250) / 32768) );
+  //broadcast(sensors_output);
+  wsSend(client_id, sensors_output);
 
 
     

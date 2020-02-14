@@ -1,6 +1,6 @@
 import numpy as np
 import math
-
+import matplotlib.pyplot as plt
 pmwL = []
 pmwR = []
 
@@ -34,9 +34,9 @@ B = 400
 # Kalman variables
 ###################################################
 
-x_best = np.array([[265, 200, 0, 0]])  # State     (each state of size n) (x,y,theta,thetaDot)
+x_best = np.array([[260, 200, 0, 0]])  # State     (each state of size n) (x,y,theta,thetaDot)
 x_best = x_best.T
-Pk = np.array([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])  # Covariance Matrix    (each element of size nxn)
+Pk = np.array([[100, 0, 0, 0], [0, 100, 0, 0], [0, 0, math.pi, 0], [0, 0, 0, 1]])  # Covariance Matrix    (each element of size nxn)
 Qk = np.array([[w_x, 0, 0, 0], [0, w_y, 0, 0], [0, 0, w_theta, 0], [0, 0, 0, w_theta_dot]])  # Environmental Error (from experimentation)(size nxn)
 Rk = np.array([[v_d1, 0, 0], [0, v_d2, 0], [0, 0, v_gyro]])  # Sensor Noise (from experimentation)(size nxm)
 id_mat = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
@@ -110,6 +110,8 @@ def h_update(state):
     state_side = state[2][0] - math.pi/2
     if state_side < 0:  # Correct orientation for below 0 degrees and above 360 degrees
         state_side = state_side + math.pi * 2
+    elif state_side >= math.pi * 2:
+        state_side = state_side - math.pi * 2
 
     if (math.pi / 2 + .1 >= state[2][0] >= math.pi / 2 - .1) \
             or (3 * math.pi / 2 + .1 >= state[2][0] >= 3 * math.pi / 2 - .1):  # To handle large numbers
@@ -170,21 +172,21 @@ def h_update(state):
         MCA = state[1][0] * (math.cos(state[2][0]) / pow(math.sin(state[2][0]), 2.0))
 
     if sel_side_laser == 0:
-        MAB = -1 / math.sin(state[2][0])
+        MAB = -1 / math.sin(state_side)
         MBB = 0
-        MCB = -(A - state[0][0]) * (math.cos(state[2][0]) / pow(math.sin(state[2][0]), 2.0))
+        MCB = -(A - state[0][0]) * (math.cos(state_side) / pow(math.sin(state_side), 2.0))
     elif sel_side_laser == 1:
         MAB = 0
-        MBB = 1 / math.cos(state[2][0])
-        MCB = -(B - state[1][0]) * (math.sin(state[2][0]) / pow(math.cos(state[2][0]), 2.0))
+        MBB = 1 / math.cos(state_side)
+        MCB = -(B - state[1][0]) * (math.cos(state_side) / pow(math.sin(state_side), 2.0))
     elif sel_side_laser == 2:
-        MAB = -1 / math.sin(state[2][0])
+        MAB = -1 / math.sin(state_side)
         MBB = 0
-        MCB = state[0][0] * (math.cos(state[2][0]) / pow(math.sin(state[2][0]), 2.0))
+        MCB = state[0][0] * (math.cos(state_side) / pow(math.sin(state_side), 2.0))
     else:
         MAB = 0
-        MBB = 1 / math.cos(state[2][0])
-        MCB = state[1][0] * (math.sin(state[2][0]) / pow(math.cos(state[2][0]), 2.0))
+        MBB = 1 / math.cos(state_side)
+        MCB = state[1][0] * (math.sin(state_side) / pow(math.cos(state_side), 2.0))
 
     Ht = np.array([[MAA, MBA, MCA, 0],
                    [MAB, MBB, MCB, 0],
@@ -193,7 +195,154 @@ def h_update(state):
     return Ht
 
 
+########################################################
+# Implementation of Kalman Filter (xtemp is placeholder)
+########################################################
+
+
+# Xt+1 = FXt + GU + W // X is before observation -
+#def next_state_prior(F, X_posterio, G, U, W):
+#    linearize_X = np.dot(F, X_posterio)
+#    linearize_input = np.dot(G, U)
+#    x_next_mean = np.add(np.add(linearize_X, linearize_input), W)
+#    return x_next_mean
+
+
+# Ouput next_P is before observation
+# input P is posteria. P is variance of the state estimation X
+# input F is linearization factor
+# input Q is Variance of the noise for state estimation
+#def next_state_P(F, P, Q):
+#    # P = FP(F.transpose) + Q
+#    next_P = np.add(np.dot(np.dot(F, P), F.transpose()), Q)
+#    return next_P
+
+
+# Output is next state posteri
+# X_prior
+# K is kalman gain
+# Z is output from simulation 
+# H is linearization of the 
+#def next_state_posterior(X_prior, K, Z, H):
+#    return np.add(X_prior, np.dot(K, np.substract(Z, np.dot(H, X_prior))))
+
+
+# calculate Kalman gain
+# Output Kalman Gain
+# P is the posteri variance
+# H is the linearization jacobian for sensors output
+# R is the variance of the noise
+#def kalman_gain(P, H, R):
+#    K = np.dot(np.dot(P, H.transpose()), np.linalg.inv(np.add(np.dot(np.dot(H, P), H), R)))
+#########################################################################
+################## PLoting codes########################
+# a and b must be the same size
+def list_substraction(a,b):
+    result = []
+    for i in range(len(a)):
+        result.append((a[i] - b[i]))
+    return result
+
+# take absolute of the lists
+def list_abs(a):
+    abs_a = []
+    for i in a:
+        abs_a.append(abs(i))
+    return abs_a
+
+# return lists of p00, p11, p22, p33
+def extract_P_to_list(pk):
+    p00 = []
+    p11 = []
+    p22 = []
+    p33 = []
+    for i in pk:
+       p00.append(i[0][0])
+       p11.append(i[1][1])
+       p22.append(i[2][2])
+       p33.append(i[3][3])
+
+    return p00,p11,p22,p33 
+
+
+# taking all P and X and plot them
+def plot_all_graphs(x_estimates,P_estimates):
+    x_x = []
+    x_y = []
+    x_delta = []
+    x_delta_dot = []
+    
+    for i in x_estimates:
+        x_x.append(i[0][0])
+        x_y.append(i[1][0])
+        x_delta.append(i[2][0])
+        x_delta_dot.append(i[3][0])
+
+    sim_state_file = open("simulation_states",'r')
+    sim_x = []
+    sim_y = []
+    sim_delta = []
+    sim_delta_dot = []
+
+    for line in sim_state_file:
+        if line == 'x y theta theta_dot\n' :
+           pass
+        else: 
+           data = line.split(',')
+           sim_x.append(float(data[0]))
+           sim_y.append(float(data[1]))
+           sim_delta.append(float(data[2]))
+           sim_delta_dot.append(float(data[3]))
+
+    x_diff = list_substraction(sim_x,x_x)
+    y_diff = list_substraction(sim_y,x_y)
+    delta_diff = list_substraction(sim_delta, x_delta)
+    delta_dot_diff = list_substraction(sim_delta, x_delta_dot)
+    
+    
+    p00,p11,p22,p33 = extract_P_to_list(P_estimates)
+    x_axe = [0.0]
+    
+    for i in range(len(x_estimates) - 1): 
+        x_axe.append(x_axe[i] + 0.1)
+   
+    plt.xlabel("time")
+    plt.ylabel("values of variance P1")
+    plt.plot(x_axe, p00)
+    plt.show()
+    
+    plt.ylabel("values of variance P2")
+    plt.plot(x_axe, p11)
+    plt.show()
+
+    plt.ylabel("values of variance P3")
+    plt.plot(x_axe, p22)
+    plt.show()
+
+    plt.ylabel("values of variance P4")
+    plt.plot(x_axe, p33)
+    plt.show()
+    
+    plt.ylabel(' x difference ')
+    plt.plot(x_axe, list_abs(x_diff))
+    plt.show()
+   
+    plt.ylabel(' y difference ')
+    plt.plot(x_axe, list_abs(y_diff))
+    plt.show()
+
+    plt.ylabel(' delta difference ')
+    plt.plot(x_axe, list_abs(delta_diff))
+    plt.show()
+
+    plt.ylabel('delta dot difference')
+    plt.plot(x_axe, list_abs(delta_dot_diff))
+    plt.show()
+    sim_state_file.close()
+
+
 def main():
+    print('hi')
     myfile = open("simulation_data.txt", 'r')  # file to read
     state_file_2 = open('EKF_states', 'w')  # file to write states for comparison
     state_file_2.write("x y theta theta_dot\n")
@@ -236,10 +385,10 @@ def main():
         ut = np.array([[wl,wr]])
         xPri = np.add(np.dot(Fk, x_best), np.dot(Gk, ut.T))
         x_best = xPri
-        if x_best[2][0] < 0:  # Correct orientation for below 0 degrees and above 360 degrees
-            x_best[2][0] = x_best[2][0] + math.pi * 2
-        elif x_best[2][0] >= math.pi * 2:
-            x_best[2][0] = x_best[2][0] - math.pi * 2
+        #if x_best[2][0] < 0:  # Correct orientation for below 0 degrees and above 360 degrees
+        #    x_best[2][0] = x_best[2][0] + math.pi * 2
+        #elif x_best[2][0] >= math.pi * 2:
+        #    x_best[2][0] = x_best[2][0] - math.pi * 2
         PPri = np.add(np.dot(np.dot(Fk, np.array(Pk)), Fk.T), Qk)
         Pk = PPri
         zk = np.array([outputVal[i]])
@@ -248,15 +397,18 @@ def main():
         xPost = (np.add(x_best, np.dot(K, (np.subtract(zk.T, np.dot(Hk, x_best))))))
         PPost = np.dot(np.subtract(id_mat, np.dot(K, Hk)), Pk)
         x_best = xPost
-        if x_best[2][0] < 0:  # Correct orientation for below 0 degrees and above 360 degrees
-            x_best[2][0] = x_best[2][0] + math.pi * 2
-        elif x_best[2][0] >= math.pi * 2:
-            x_best[2][0] = x_best[2][0] - math.pi * 2
+       # if x_best[2][0] < 0:  # Correct orientation for below 0 degrees and above 360 degrees
+        #    x_best[2][0] = x_best[2][0] + math.pi * 2
+       # elif x_best[2][0] >= math.pi * 2:
+        #    x_best[2][0] = x_best[2][0] - math.pi * 2
         Pk = PPost
-        state_file_2.write(str(round(x_best[0][0], 2)) + ', ' + str(round(x_best[1][0], 2)) + ', '
+        state_file_2.write(str(round(x_best[0][0]+536, 2)) + ', ' + str(round(x_best[1][0], 2)) + ', '
                            + str(round(x_best[2][0], 2)) + ',' + str(round(x_best[3][0], 2)) + "\n")
-        #x_estimates.append(x_best.tolist())
-        #P_estimates.append(Pk.tolist())
+        x_estimates.append(x_best.tolist())
+        P_estimates.append(Pk.tolist())
+    
+    # x_estimates is a list of 4 by 1 matrices, P_estimates is a list of 4 by 4 matrices
+    #plot_all_graphs(x_estimates, P_estimates)
     #print(x_estimates)
     #print(P_estimates)
     state_file_2.close()
