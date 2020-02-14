@@ -20,9 +20,9 @@ import numpy as np # Needed for the uncertainty
 #  Global Constants
 A = 530          # X ceiling(mm)
 B = 400          # Y ceiling(mm)
-T = .1           # Sampling Period(s)
+T = 0.1           # Sampling Period(s)
 M = 25           # Magnetometer magnitude (+-6)(uT)
-R = 40           # Radius of Wheel (mm)
+R = 20           # Radius of Wheel (mm)
 L = 85           # Width of Robot (mm)
 
 # Standard Deviations (square root of variances)
@@ -39,7 +39,7 @@ gyro_var = .01
 
 
 # Global value for STATE
-x = 265            # X coord
+x = 260          # X coord
 y = 200            # Y coord
 theta = 0          # Heading
 theta_dot = 0      # Angular Velocity

@@ -1,6 +1,6 @@
 import numpy as np
 import math
-
+import matplotlib.pyplot as plt
 pmwL = []
 pmwR = []
 
@@ -34,9 +34,9 @@ B = 400
 # Kalman variables
 ###################################################
 
-x_best = np.array([[265, 200, 0, 0]])  # State     (each state of size n) (x,y,theta,thetaDot)
+x_best = np.array([[260, 200, 0, 0]])  # State     (each state of size n) (x,y,theta,thetaDot)
 x_best = x_best.T
-Pk = np.array([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])  # Covariance Matrix    (each element of size nxn)
+Pk = np.array([[100, 0, 0, 0], [0, 100, 0, 0], [0, 0, math.pi, 0], [0, 0, 0, 1]])  # Covariance Matrix    (each element of size nxn)
 Qk = np.array([[w_x, 0, 0, 0], [0, w_y, 0, 0], [0, 0, w_theta, 0], [0, 0, 0, w_theta_dot]])  # Environmental Error (from experimentation)(size nxn)
 Rk = np.array([[v_d1, 0, 0], [0, v_d2, 0], [0, 0, v_gyro]])  # Sensor Noise (from experimentation)(size nxm)
 id_mat = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
@@ -264,8 +264,9 @@ def extract_P_to_list(pk):
 
     return p00,p11,p22,p33 
 
+
 # taking all P and X and plot them
-def plot_all_graph(x_estimates,P_estimates):
+def plot_all_graphs(x_estimates,P_estimates):
     x_x = []
     x_y = []
     x_delta = []
@@ -277,7 +278,7 @@ def plot_all_graph(x_estimates,P_estimates):
         x_delta.append(i[2][0])
         x_delta_dot.append(i[3][0])
 
-    sim_state_file = open("simulation_states.txt",'r')
+    sim_state_file = open("simulation_states",'r')
     sim_x = []
     sim_y = []
     sim_delta = []
@@ -339,6 +340,7 @@ def plot_all_graph(x_estimates,P_estimates):
     plt.show()
     sim_state_file.close()
 
+
 def main():
     print('hi')
     myfile = open("simulation_data.txt", 'r')  # file to read
@@ -383,10 +385,10 @@ def main():
         ut = np.array([[wl,wr]])
         xPri = np.add(np.dot(Fk, x_best), np.dot(Gk, ut.T))
         x_best = xPri
-        if x_best[2][0] < 0:  # Correct orientation for below 0 degrees and above 360 degrees
-            x_best[2][0] = x_best[2][0] + math.pi * 2
-        elif x_best[2][0] >= math.pi * 2:
-            x_best[2][0] = x_best[2][0] - math.pi * 2
+        #if x_best[2][0] < 0:  # Correct orientation for below 0 degrees and above 360 degrees
+        #    x_best[2][0] = x_best[2][0] + math.pi * 2
+        #elif x_best[2][0] >= math.pi * 2:
+        #    x_best[2][0] = x_best[2][0] - math.pi * 2
         PPri = np.add(np.dot(np.dot(Fk, np.array(Pk)), Fk.T), Qk)
         Pk = PPri
         zk = np.array([outputVal[i]])
@@ -395,18 +397,18 @@ def main():
         xPost = (np.add(x_best, np.dot(K, (np.subtract(zk.T, np.dot(Hk, x_best))))))
         PPost = np.dot(np.subtract(id_mat, np.dot(K, Hk)), Pk)
         x_best = xPost
-        if x_best[2][0] < 0:  # Correct orientation for below 0 degrees and above 360 degrees
-            x_best[2][0] = x_best[2][0] + math.pi * 2
-        elif x_best[2][0] >= math.pi * 2:
-            x_best[2][0] = x_best[2][0] - math.pi * 2
+       # if x_best[2][0] < 0:  # Correct orientation for below 0 degrees and above 360 degrees
+        #    x_best[2][0] = x_best[2][0] + math.pi * 2
+       # elif x_best[2][0] >= math.pi * 2:
+        #    x_best[2][0] = x_best[2][0] - math.pi * 2
         Pk = PPost
-        state_file_2.write(str(round(x_best[0][0], 2)) + ', ' + str(round(x_best[1][0], 2)) + ', '
+        state_file_2.write(str(round(x_best[0][0]+536, 2)) + ', ' + str(round(x_best[1][0], 2)) + ', '
                            + str(round(x_best[2][0], 2)) + ',' + str(round(x_best[3][0], 2)) + "\n")
         x_estimates.append(x_best.tolist())
         P_estimates.append(Pk.tolist())
     
     # x_estimates is a list of 4 by 1 matrices, P_estimates is a list of 4 by 4 matrices
-    plot_all_graphs(x_estimates, P_estimates)
+    #plot_all_graphs(x_estimates, P_estimates)
     #print(x_estimates)
     #print(P_estimates)
     state_file_2.close()
