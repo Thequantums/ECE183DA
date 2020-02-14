@@ -402,7 +402,7 @@ def main():
        # elif x_best[2][0] >= math.pi * 2:
         #    x_best[2][0] = x_best[2][0] - math.pi * 2
         Pk = PPost
-        state_file_2.write(str(round(x_best[0][0]+536, 2)) + ', ' + str(round(x_best[1][0], 2)) + ', '
+        state_file_2.write(str(round(x_best[0][0]+529, 2)) + ', ' + str(round(x_best[1][0], 2)) + ', '
                            + str(round(x_best[2][0], 2)) + ',' + str(round(x_best[3][0], 2)) + "\n")
         x_estimates.append(x_best.tolist())
         P_estimates.append(Pk.tolist())
