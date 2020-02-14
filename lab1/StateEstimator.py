@@ -20,27 +20,7 @@ w_theta_dot = .000001
 v_d1 = 2.25
 v_d2 = 2.25
 v_gyro = .01
-#######################################################
-# Reads File into individual arrays for input and output
-#######################################################
-#for line in myfile:
- #   if line == 'pwml   pwmr   d1   d2   mx   my   gyro   timestamp\n':
-  #      pass
-   # else:
-    #    data = line.split(',')
-    #    pmwL.append(float(data[0]))
-    #    pmwR.append(float(data[1]))
-    #    d1.append(float(data[2]))
-    #    d2.append(float(data[3]))
-    #    mx.append(float(data[4]))
-    #    my.append(float(data[5]))
-    #    gyro.append(float(data[6]))
-    #    timestamp.append(float(data[7].rstrip('\n')))
 
-#inputVal = np.array([pmwL, pmwR])
-#outputVal = np.array([d1, d2, gyro])
-#inputVal = inputVal.transpose()
-#outputVal = outputVal.transpose()
 ###################################################
 # Outputs inputVal array and outputVal array
 ###################################################
