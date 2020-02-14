@@ -1,6 +1,5 @@
 import numpy as np
 import math
-myfile = open("simulation_data.txt", 'r')  # file to read
 
 pmwL = []
 pmwR = []
@@ -12,35 +11,42 @@ my = []
 gyro = []
 timestamp = []
 data = []
+
+w_x = 10
+w_y = 10
+w_theta = 10
+w_theta_dot = 10
+
+v_d1 = 5
+v_d2 = 5
+v_gyro = .1
 #######################################################
-#Reads File into individual arrays for input and output
+# Reads File into individual arrays for input and output
 #######################################################
-for line in myfile:
-    if line == 'pwml   pwmr   d1   d2   mx   my   gyro   timestamp\n':
-        pass
-    else:
-        data = line.split(',')
-        pmwL.append(float(data[0]))
-        pmwR.append(float(data[1]))
-        d1.append(float(data[2]))
-        d2.append(float(data[3]))
-        mx.append(float(data[4]))
-        my.append(float(data[5]))
-        gyro.append(float(data[6]))
-        timestamp.append(float(data[7].rstrip('\n')))
+#for line in myfile:
+ #   if line == 'pwml   pwmr   d1   d2   mx   my   gyro   timestamp\n':
+  #      pass
+   # else:
+    #    data = line.split(',')
+    #    pmwL.append(float(data[0]))
+    #    pmwR.append(float(data[1]))
+    #    d1.append(float(data[2]))
+    #    d2.append(float(data[3]))
+    #    mx.append(float(data[4]))
+    #    my.append(float(data[5]))
+    #    gyro.append(float(data[6]))
+    #    timestamp.append(float(data[7].rstrip('\n')))
 
-
-inputVal = np.array([pmwL, pmwR])
-outputVal = np.array([d1, d2, gyro])
-inputVal = inputVal.transpose()
-outputVal = outputVal.transpose()
+#inputVal = np.array([pmwL, pmwR])
+#outputVal = np.array([d1, d2, gyro])
+#inputVal = inputVal.transpose()
+#outputVal = outputVal.transpose()
 ###################################################
-#Outputs inputVal array and outputVal array
+# Outputs inputVal array and outputVal array
 ###################################################
-
-Rw = 90
-L = 90
-d = L/2
+Rw = 40
+L = 85
+d = L / 2
 T = 0.1
 A = 530
 B = 400
@@ -48,198 +54,215 @@ B = 400
 # Kalman variables
 ###################################################
 
-x = [[265,200, 1,0]]                            #State     (each state of size n) (x,y,theta,thetaDot)
-Pk = [[1000,0,0,0],[0,1000,0,0], [0,0,1000,0], [0,0,0,1000]]                #Covariance Matrix    (each element of size nxn)
-Fk = np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])     #Prediction Matrix (from linearization) (size nxn)
-Gk = np.array([])   #input matrix
-Hk = np.array([])              #Sensor Model (from linearization)(size mxn)
-Qk = np.array([[1,0,0,0],[0,1,0,0], [0,0,1,0], [0,0,0,1]] )     #Environmental Error (from experimentation)(size nxn)
-Rk = np.array([[1,0,0],[0,1,0],[0,0,1]] )              #Sensor Noise (from experimentation)(size nxm)
-K = np.array([])                 #Kalman Gain
-zk = np.array([])             #Sensor Reading (size m)
-xPost = np.array([])             #Posteriori State
-PPost = np.array([])             #Posteriori Covariance
+x_best = np.array([[265, 200, 1, 0]])  # State     (each state of size n) (x,y,theta,thetaDot)
+x_best = x_best.T
+Pk = np.array([[1000, 0, 0, 0], [0, 1000, 0, 0], [0, 0, 1000, 0], [0, 0, 0, 1000]])  # Covariance Matrix    (each element of size nxn)
+Qk = np.array([[w_x, 0, 0, 0], [0, w_y, 0, 0], [0, 0, w_theta, 0], [0, 0, 0, w_theta_dot]])  # Environmental Error (from experimentation)(size nxn)
+Rk = np.array([[v_d1, 0, 0], [0, v_d2, 0], [0, 0, v_gyro]])  # Sensor Noise (from experimentation)(size nxm)
+id_mat = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+Fk = np.array([])  # Prediction Matrix (from linearization) (size nxn)
+Gk = np.array([])  # input matrix
+Hk = np.array([])  # Sensor Model (from linearization)(size mxn)
+K = np.array([])  # Kalman Gain  # Sensor Reading (size m)
+xPost = np.array([])  # Posteriori State
+PPost = np.array([])  # Posteriori Covariance
+
+x_estimates = [x_best]
+P_estimates = [Pk]
+
 ##########################################################
-#PWM->Velocity
+# PWM->Velocity
 ##########################################################
-def pwm_to_velocity(pwm):
+
+
+def pwm_to_w_velocity(pwm):
     # Function takes pwm value and turns into an angular velocity which is then
     # converted into a translational velocity. Angular velocity is found using
     # experimentation where a non-linear plot is broken down into various linear
     # regions with dead zones and saturation. Experimentation can be found on lab report
-    R = 50
     if pwm >= 150:  # Max Speed Forward, Saturation
         w = 6.5
     elif pwm >= 110:  # Fast forward, Linear Near Saturation
-        w = 0.0386*pwm + 0.582
+        w = 0.0386 * pwm + 0.582
     elif pwm >= 91:  # Slow forward, Linear
-        w = 0.254*pwm - 23.114
+        w = 0.254 * pwm - 23.114
     elif pwm >= 86:  # Deadzone
         w = 0
     elif pwm >= 70:  # Slow Backwards, Linear
-        w = .297*pwm - 25.456
+        w = .297 * pwm - 25.456
     elif pwm >= 60:  # Fast Backwards, Linear Saturation
-        w = .0756*pwm - 10.038
+        w = .0756 * pwm - 10.038
     else:  # Max Speed Reverse, Saturation
         w = -6.33
-    return w*R  # Translational Velocity
-##########################################################
+    return w  # Translational Velocity
 
-##########################################################
-# State Dynamics Function (State+Input=>Posteriori State)
-##########################################################
-#Takes a state at one instant and a set of PWM vals at that instant. Should output as a list with size=x.size
 
-def StateDyn(currentState,inVals):
-    xout = []
-    vl = pwm_to_velocity(inVals[0])
-    vr = pwm_to_velocity(inVals[1])
-    L = 90
-    T = 0.1
-   ####State Dynamics Go Here (erase my garbage test code
-    if vl != vr:  # If the robot is following a curved path
-        r_curve = L * (vl + vr) / (2 * (vr - vl))  # calculate radius of curvature
-        w_curve = (vr - vl) / L  # calculate angular velocity
-        ccx = currentState[0] - r_curve * math.sin(currentState[2])  # calculate center of curvature (x coord)
-        ccy = currentState[1] + r_curve * math.cos(currentState[2])  # calculate center of curvature (y coord)
-        x_next = (currentState[0] - ccx) * math.cos(w_curve * T) - (currentState[1] - ccy) * math.sin(w_curve * T) + ccx  # calc next x coord
-        y_next = (currentState[0] - ccx) * math.sin(w_curve * T) + (currentState[1] - ccy) * math.cos(w_curve * T) + ccy  # calc next y coord
-        theta_next = currentState[2] + w_curve * T  # calc next theta
-    else:  # If the robot is following a straight path
-        x_next = vl * T * math.cos(currentState[2]) + currentState[0]  # calc next x coord
-        y_next = vl * T * math.sin(currentState[2]) + currentState[1]  # calc next y coord
-        theta_next = currentState[2]  # maintain heading
-    xout =[x_next,y_next,theta_next,0]
-    ####
-    return xout
-def F_Update(state,inValues):
+def f_update(state, in_values):
     global Rw
     global d
     global T
-    a = Rw*(inValues[0]+inValues[1])/2
-    b = Rw*(inValues[1]-inValues[0])/(2*d)
-    Ft = np.array([[1,0,-a*math.sin(state[2])*T,0],
-                   [0,1,a*math.cos(state[2])*T,0],
-                   [0,0,1,0],
-                   [0,0,0,0]])
+    wl = pwm_to_w_velocity(in_values[0])
+    wr = pwm_to_w_velocity(in_values[1])
+    a = Rw * (wl + wr) / 2
+    Ft = np.array([[1, 0, -a * math.sin(state[2][0]) * T, 0],
+                   [0, 1, a * math.cos(state[2][0]) * T, 0],
+                   [0, 0, 1, 0],
+                   [0, 0, 0, 0]])
     return Ft
 
 
-def G_Update(state):
+def g_update(state):
     global Rw
     global d
     global T
-    Gt = np.array([[Rw*math.cos(state[2])*T/2,Rw*math.cos(state[2])*T/2],
-                   [Rw*math.sin(state[2])*T/2,Rw*math.sin(state[2])*T/2],
-                   [-Rw*T/(2*d),Rw*T/(2*d)],
-                   [-Rw/(2*d),Rw/(2*d)]])
-    return Gt
+    gt = np.array([[Rw * math.cos(state[2][0]) * T / 2, Rw * math.cos(state[2][0]) * T / 2],
+                   [Rw * math.sin(state[2][0]) * T / 2, Rw * math.sin(state[2][0]) * T / 2],
+                   [-Rw * T / (2 * d), Rw * T / (2 * d)],
+                   [-Rw / (2 * d), Rw / (2 * d)]])
+    return gt
 
 
-def H_Update(state):
+def h_update(state):
     global A
     global B
-    global L
-    global w
-    d = [0, 0, 0, 0]
-    if state[2] == math.pi / 2 or state[2] == 3 * math.pi / 2:  # To handle dividing by zero,  set to mock infinity
-        d[0] = 1000000
-        d[2] = 1000000
+    front_laser = [0, 0, 0, 0]
+    side_laser = [0, 0, 0, 0]
+
+    if (math.pi / 2 + .1 >= state[2][0] >= math.pi / 2 - .1) \
+            or (3 * math.pi / 2 + .1 >= state[2][0] >= 3 * math.pi / 2 - .1):  # To handle large numbers
+        front_laser[0] = 1000000
+        front_laser[2] = 1000000
     else:
-        d[0] = (A - state[0]) / math.cos(state[2])
-        d[2] = -state[0] / math.cos(state[2])
-    if state[2] == 0 or math.pi:  # To handle dividing by zero, set to mock infinity
-        d[1] = 1000000
-        d[3] = 1000000
+        front_laser[0] = (A - state[0][0]) / math.cos(state[2][0])
+        front_laser[2] = -state[0][0] / math.cos(state[2][0])
+    if (.1 >= state[2][0] >= 0) \
+            or (2 * math.pi >= state[2][0] >= 2 * math.pi - .1) \
+            or (math.pi + .1 >= state[2][0] >= math.pi - .1):  # To handle large numbers
+        front_laser[1] = 1000000
+        front_laser[3] = 1000000
     else:
-        d[1] = (B - state[1]) / math.sin(state[2])
-        d[3] = -state[0] / math.sin(state[2])
+        front_laser[1] = (B - state[1][0]) / math.sin(state[2][0])
+        front_laser[3] = - state[1][0] / math.sin(state[2][0])
     for x in range(4):  # To reject negative values, set to mock infinity
-        if d[x] < 0:
-            d[x] = 1000000
+        if front_laser[x] < 0:
+            front_laser[x] = 1000000
 
-    selD = d.index(min(d))
+    if (math.pi / 2 + .1 >= state[2][0] - math.pi/2 >= math.pi / 2 - .1) \
+            or (3 * math.pi / 2 + .1 >= state[2][0] - math.pi/2 >= 3 * math.pi / 2 - .1):  # To handle large numbers
+        side_laser[0] = 1000000
+        side_laser[2] = 1000000
+    else:
+        side_laser[0] = (A - state[0][0]) / math.cos(state[2][0] - math.pi/2)
+        side_laser[2] = -state[0][0] / math.cos(state[2][0] - math.pi/2)
+    if (.1 >= state[2] >= 0) \
+            or (2 * math.pi >= state[2][0] - math.pi / 2 >= 2 * math.pi - .1) \
+            or (math.pi + .1 >= state[2][0] - math.pi / 2 >= math.pi - .1):  # To handle large numbers
+        side_laser[1] = 1000000
+        side_laser[3] = 1000000
+    else:
+        side_laser[1] = (B - state[1][0]) / math.sin(state[2][0] - math.pi / 2)
+        side_laser[3] = - state[1][0] / math.sin(state[2][0] - math.pi / 2)
+    for x in range(4):  # To reject negative values, set to mock infinity
+        if side_laser[x] < 0:
+            side_laser[x] = 1000000
 
-    if selD == 0:
-        MAA = -1/math.cos(state[2])
+    sel_front_laser = front_laser.index(min(front_laser))
+    sel_side_laser = side_laser.index(min(side_laser))
+
+    if sel_front_laser == 0:
+        MAA = -1 / math.cos(state[2][0])
         MBA = 0
-        MCA = (A-state[0])*(math.sin(state[2])/pow(math.cos(state[2]),2.0))
-        MAB = -1/math.sin(state[2])
-        MBB = 0
-        MCB = -(A-state[0])*(math.cos(state[2])/pow(math.sin(state[2]),2.0))
-    elif selD == 1:
+        MCA = (A - state[0][0]) * (math.sin(state[2][0]) / pow(math.cos(state[2][0]), 2.0))
+    elif sel_front_laser == 1:
         MAA = 0
-        MBA = -1/math.sin(state[2])
-        MCA = -(B-state[1])*(math.cos(state[2])/pow(math.sin(state[2]),2.0))
-        MAB = 0
-        MBB = 1/math.cos(state[2])
-        MCB = -(B-state[1])*(math.cos(state[2])/pow(math.sin(state[2]),2.0))
-    elif selD == 2:
-        MAA = -1/math.cos(state[2])
+        MBA = -1 / math.sin(state[2][0])
+        MCA = -(B - state[1][0]) * (math.cos(state[2][0]) / pow(math.sin(state[2][0]), 2.0))
+    elif sel_front_laser == 2:
+        MAA = -1 / math.cos(state[2][0])
         MBA = 0
-        MCA = -state[0]*(math.sin(state[2])/pow(math.cos(state[2]),2.0))
-        MAB = -1/math.sin(state[2])
-        MBB = 0
-        MCB = state[0]*(math.cos(state[2])/pow(math.sin(state[2]),2.0))
+        MCA = -state[0][0] * (math.sin(state[2][0]) / pow(math.cos(state[2][0]), 2.0))
     else:
         MAA = 0
-        MBA = -1/math.sin(state[2])
-        MCA = state[1]*(math.cos(state[2])/pow(math.sin(state[2]),2.0))
-        MAB = 0
-        MBB = 1/math.cos(state[2])
-        MCB = state[1]*(math.sin(state[2])/pow(math.cos(state[2]),2.0))
+        MBA = -1 / math.sin(state[2][0])
+        MCA = state[1][0] * (math.cos(state[2][0]) / pow(math.sin(state[2][0]), 2.0))
 
-    Ht = np.array([[MAA,MBA,MCA,0],
-                   [MAB,MBB,MCB,0],
-                   [0,0,0,1]])
+    if sel_side_laser == 0:
+        MAB = -1 / math.sin(state[2][0] - math.pi/2)
+        MBB = 0
+        MCB = -(A - state[0][0]) * (math.cos(state[2][0] - math.pi/2) / pow(math.sin(state[2][0] - math.pi/2), 2.0))
+    elif sel_side_laser == 1:
+        MAB = 0
+        MBB = 1 / math.cos(state[2][0] - math.pi/2)
+        MCB = -(B - state[1][0]) * (math.cos(state[2][0] - math.pi/2) / pow(math.sin(state[2][0] - math.pi/2), 2.0))
+    elif sel_side_laser == 2:
+        MAB = -1 / math.sin(state[2][0] - math.pi/2)
+        MBB = 0
+        MCB = state[0][0] * (math.cos(state[2][0] - math.pi/2) / pow(math.sin(state[2][0] - math.pi/2), 2.0))
+    else:
+        MAB = 0
+        MBB = 1 / math.cos(state[2][0] - math.pi/2)
+        MCB = state[1][0] * (math.sin(state[2][0] - math.pi/2) / pow(math.cos(state[2][0] - math.pi/2), 2.0))
+
+    Ht = np.array([[MAA, MBA, MCA, 0],
+                   [MAB, MBB, MCB, 0],
+                   [0, 0, 0, 1]])
 
     return Ht
 
+
 ########################################################
-#Implementation of Kalman Filter (xtemp is placeholder)
+# Implementation of Kalman Filter (xtemp is placeholder)
 ########################################################
 
-
-
-
-#####################################################################
-#####################################################################
-#####################################################################
 
 # Xt+1 = FXt + GU + W // X is before observation -
-def next_state_prior(F, X_posterio, G, U, W):
-    linearize_X = np.dot(F, X_posterio)
-    linearize_input = np.dot(G,U)
-    x_next_mean = np.add(np.add(linearize_X, linearize_input), W)
-    return x_next_mean
+#def next_state_prior(F, X_posterio, G, U, W):
+#    linearize_X = np.dot(F, X_posterio)
+#    linearize_input = np.dot(G, U)
+#    x_next_mean = np.add(np.add(linearize_X, linearize_input), W)
+#    return x_next_mean
+
 
 # Ouput next_P is before observation
 # input P is posteria. P is variance of the state estimation X
 # input F is linearization factor
 # input Q is Variance of the noise for state estimation
-def next_state_P(F, P, Q):
-    #P = FP(F.transpose) + Q
-    next_P = np.add(np.dot(np.dot(F, P), F.transpose()), Q) 
-    return next_P 
+#def next_state_P(F, P, Q):
+#    # P = FP(F.transpose) + Q
+#    next_P = np.add(np.dot(np.dot(F, P), F.transpose()), Q)
+#    return next_P
 
-#Output is next state posteri
-#X_prior
+
+# Output is next state posteri
+# X_prior
 # K is kalman gain
 # Z is output from simulation 
 # H is linearization of the 
-def next_state_posterior(X_prior, K, Z, H):
-    return np.add(X_prior, np.dot(K, np.substract(Z, np.dot(H, X_prior))))
+#def next_state_posterior(X_prior, K, Z, H):
+#    return np.add(X_prior, np.dot(K, np.substract(Z, np.dot(H, X_prior))))
 
-#calculate Kalman gain
+
+# calculate Kalman gain
 # Output Kalman Gain
 # P is the posteri variance
 # H is the linearization jacobian for sensors output
 # R is the variance of the noise
-def kalman_gain(P,H, R):
-    K = np.dot(np.dot(P, H.transpose()), np.linalg.inv(np.add(np.dot(np.dot(H,P),H), R)))
+#def kalman_gain(P, H, R):
+#    K = np.dot(np.dot(P, H.transpose()), np.linalg.inv(np.add(np.dot(np.dot(H, P), H), R)))
 
 
 def main():
+    myfile = open("simulation_data.txt", 'r')  # file to read
+    global Fk
+    global Gk
+    global Hk
+    global Pk
+    global xPost
+    global x_best
+    global id_mat
+    global data
+    global K
+    global PPost
     for line in myfile:
         if line == 'pwml   pwmr   d1   d2   mx   my   gyro   timestamp\n':
             pass
@@ -259,22 +282,28 @@ def main():
     inputVal = inputVal.transpose()
     outputVal = outputVal.transpose()
 
+    for i in range(inputVal.shape[0] - 1):
+        Fk = f_update(x_best, inputVal[i])
+        Gk = g_update(x_best)
+        ut = np.array([inputVal[i]])
+        xPri = np.add(np.dot(Fk, x_best), np.dot(Gk, ut.T))
+        x_best = xPri
+        PPri = np.add(np.dot(np.dot(Fk, np.array(Pk)), Fk.T), Qk)
+        Pk = PPri
+        zk = np.array([outputVal[i]])
+        Hk = h_update(x_best)
+        K = np.dot(np.dot(Pk, Hk.T), np.linalg.inv(np.add(np.dot(np.dot(Hk, Pk), Hk.T), Rk)))
+        xPost = (np.add(x_best, np.dot(K, (np.subtract(zk.T, np.dot(Hk, x_best))))))
+        PPost = np.dot(np.subtract(id_mat, np.dot(K, Hk)), Pk)
+        x_best = xPost
+        Pk = PPost
+        x_estimates.append(x_best.tolist())
+        P_estimates.append(Pk.tolist())
+    print(x_estimates)
+    print(P_estimates)
 
-    for i in range(inputVal.shape[0]-1):
-        zk = outputVal[i]
-        Fk = F_Update(x[i],inputVal[i])
-        Gk = G_Update(x[i])
-        Hk = H_Update(x[i])
-        xPri = np.add(np.dot(Fk,x[i]),np.dot(Gk,inputVal[i]))
-        PPri = np.add(np.dot(np.dot(Fk,np.array(Pk[i])),Fk.T), Qk)
-        K = np.dot(np.dot(PPri, Hk.T),np.linalg.inv(np.add(np.dot(np.dot(Hk,PPri), Hk.T),Rk)))
-        xPost = (np.add(xPri, np.dot(K,(np.subtract(zk,np.dot(Hk,xPri))))))
-        PPost = np.subtract(PPri, np.dot(np.dot(K,Hk),PPri))
-        x.append(xPost.tolist())
-        Pk.append(PPost.tolist())
-    print(x)
-    print(Pk)
     myfile.close()
 
-if __name__== "__main__":
-    main()    
+
+if __name__ == "__main__":
+    main()

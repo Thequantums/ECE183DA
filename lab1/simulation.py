@@ -211,7 +211,7 @@ def the_d(special_theta):
         d[3] = 1000000
     else:
         d[1] = (B - y) / math.sin(special_theta)
-        d[3] = -x / math.sin(special_theta)
+        d[3] = -y / math.sin(special_theta)
     for x in range(4): # To reject negative values, set to mock infinity
         if d[x] < 0:
             d[x] = 1000000
