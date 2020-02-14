@@ -23,3 +23,5 @@ paperbot->Software->paperbot.ino: Attempt to add wireless data transmission func
 Lab2Data.xlsx: Analysis and plotting of an individual test, used to determine the x-offset needed.
 
 Lab 2 Data Analysis.xlsx: Analysis and plotting of simulation states against estimation states, used for error analysis and evaluation of Kalman filter.
+
+Graphs directory: Contains the graphs about variances of P (state from kalman filter) over time and the graphs of state difference between Kalman filter and simulation.
