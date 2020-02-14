@@ -265,7 +265,7 @@ def extract_P_to_list(pk):
     return p00,p11,p22,p33 
 
 # taking all P and X and plot them
-def plot_all_graph(x_estimates,P_estimates):
+def plot_all_graphs(x_estimates,P_estimates):
     x_x = []
     x_y = []
     x_delta = []
