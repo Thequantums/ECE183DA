@@ -34,7 +34,7 @@ B = 400
 # Kalman variables
 ###################################################
 
-x_best = np.array([[265, 200, 1, 0]])  # State     (each state of size n) (x,y,theta,thetaDot)
+x_best = np.array([[265, 200, 0, 0]])  # State     (each state of size n) (x,y,theta,thetaDot)
 x_best = x_best.T
 Pk = np.array([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])  # Covariance Matrix    (each element of size nxn)
 Qk = np.array([[w_x, 0, 0, 0], [0, w_y, 0, 0], [0, 0, w_theta, 0], [0, 0, 0, w_theta_dot]])  # Environmental Error (from experimentation)(size nxn)
@@ -266,6 +266,7 @@ def main():
     outputVal = outputVal.transpose()
     state_file_2.write(str(round(x_best[0][0], 2)) + ', ' + str(round(x_best[1][0], 2)) + ', '
                        + str(round(x_best[2][0], 2)) + ',' + str(round(x_best[3][0], 2)) + "\n")
+
     for i in range(inputVal.shape[0]):
         Fk = f_update(x_best, inputVal[i])
         Gk = g_update(x_best)
