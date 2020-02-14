@@ -19,3 +19,7 @@ simulation_data.txt: File where output from simulation is stored. Updated format
 simulation_states.txt: Output file for simulation.py. Format is a four-tuple, which represents the four states x y theta theta_dot
 
 paperbot->Software->paperbot.ino: Attempt to add wireless data transmission functionality to paperbot. Incomplete, other modified files in Software folder are attempts at same implmention and are also incomplete
+
+Lab2Data.xlsx: Analysis and plotting of an individual test, used to determine the x-offset needed.
+
+Lab 2 Data Analysis.xlsx: Analysis and plotting of simulation states against estimation states, used for error analysis and evaluation of Kalman filter.
