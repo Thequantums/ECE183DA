@@ -36,7 +36,7 @@ B = 400
 
 x_best = np.array([[265, 200, 1, 0]])  # State     (each state of size n) (x,y,theta,thetaDot)
 x_best = x_best.T
-Pk = np.array([[250, 0, 0, 0], [0, 250, 0, 0], [0, 0, 250, 0], [0, 0, 0, 250]])  # Covariance Matrix    (each element of size nxn)
+Pk = np.array([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])  # Covariance Matrix    (each element of size nxn)
 Qk = np.array([[w_x, 0, 0, 0], [0, w_y, 0, 0], [0, 0, w_theta, 0], [0, 0, 0, w_theta_dot]])  # Environmental Error (from experimentation)(size nxn)
 Rk = np.array([[v_d1, 0, 0], [0, v_d2, 0], [0, 0, v_gyro]])  # Sensor Noise (from experimentation)(size nxm)
 id_mat = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
