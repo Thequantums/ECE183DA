@@ -284,10 +284,10 @@ def main():
         state_checker(v_left, v_right)  # Check validity of update
         d1 = the_d(theta) + np.random.normal(0, d1_var)  # Distance of forward laser, orientation of laser is same as car
         theta_side = theta - math.pi / 2  # Orientation of second laser is -90 degrees of car's orientation
-        # if theta_x < 0:  # Correct orientation for below 0 degrees and above 360 degrees
-            # theta_x = theta_x + math.pi * 2
-        # elif theta_x >= math.pi * 2:
-            # theta_x = theta_x - math.pi * 2
+        if theta_side < 0:  # Correct orientation for below 0 degrees and above 360 degrees
+            theta_side = theta_side + math.pi * 2
+        elif theta_side >= math.pi * 2:
+            theta_side = theta_side - math.pi * 2
         d2 = the_d(theta_side) + np.random.normal(0, d2_var)  # Distance of side laser
         mx = M * math.sin(theta) + np.random.normal(0, mx_var) # Magnetometer along x-axis
         my = M * math.cos(theta) + np.random.normal(0, my_var) # Magnetometer along y-axis

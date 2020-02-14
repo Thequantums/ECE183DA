@@ -19,7 +19,7 @@ w_theta_dot = .000001
 
 v_d1 = 2.25
 v_d2 = 2.25
-v_gyro = .01
+v_gyro = .0001
 
 ###################################################
 # Outputs inputVal array and outputVal array
@@ -107,6 +107,11 @@ def h_update(state):
     global B
     front_laser = [0, 0, 0, 0]
     side_laser = [0, 0, 0, 0]
+    state_side = state[2][0] - math.pi/2
+    if state_side < 0:  # Correct orientation for below 0 degrees and above 360 degrees
+        state_side = state_side + math.pi * 2
+    elif state_side >= math.pi * 2:
+        state_side = state_side - math.pi * 2
 
     if (math.pi / 2 + .1 >= state[2][0] >= math.pi / 2 - .1) \
             or (3 * math.pi / 2 + .1 >= state[2][0] >= 3 * math.pi / 2 - .1):  # To handle large numbers
@@ -127,21 +132,21 @@ def h_update(state):
         if front_laser[x] < 0:
             front_laser[x] = 1000000
 
-    if (math.pi / 2 + .1 >= state[2][0] - math.pi/2 >= math.pi / 2 - .1) \
-            or (3 * math.pi / 2 + .1 >= state[2][0] - math.pi/2 >= 3 * math.pi / 2 - .1):  # To handle large numbers
+    if (math.pi / 2 + .1 >= state_side >= math.pi / 2 - .1) \
+            or (3 * math.pi / 2 + .1 >= state_side >= 3 * math.pi / 2 - .1):  # To handle large numbers
         side_laser[0] = 1000000
         side_laser[2] = 1000000
     else:
-        side_laser[0] = (A - state[0][0]) / math.cos(state[2][0] - math.pi/2)
-        side_laser[2] = -state[0][0] / math.cos(state[2][0] - math.pi/2)
-    if (.1 >= state[2] >= 0) \
-            or (2 * math.pi >= state[2][0] - math.pi / 2 >= 2 * math.pi - .1) \
-            or (math.pi + .1 >= state[2][0] - math.pi / 2 >= math.pi - .1):  # To handle large numbers
+        side_laser[0] = (A - state[0][0]) / math.cos(state_side)
+        side_laser[2] = -state[0][0] / math.cos(state_side)
+    if (.1 >= state_side >= 0) \
+            or (2 * math.pi >= state_side >= 2 * math.pi - .1) \
+            or (math.pi + .1 >= state_side >= math.pi - .1):  # To handle large numbers
         side_laser[1] = 1000000
         side_laser[3] = 1000000
     else:
-        side_laser[1] = (B - state[1][0]) / math.sin(state[2][0] - math.pi / 2)
-        side_laser[3] = - state[1][0] / math.sin(state[2][0] - math.pi / 2)
+        side_laser[1] = (B - state[1][0]) / math.sin(state_side)
+        side_laser[3] = - state[1][0] / math.sin(state_side)
     for x in range(4):  # To reject negative values, set to mock infinity
         if side_laser[x] < 0:
             side_laser[x] = 1000000
@@ -167,21 +172,21 @@ def h_update(state):
         MCA = state[1][0] * (math.cos(state[2][0]) / pow(math.sin(state[2][0]), 2.0))
 
     if sel_side_laser == 0:
-        MAB = -1 / math.sin(state[2][0] - math.pi/2)
+        MAB = -1 / math.sin(state_side)
         MBB = 0
-        MCB = -(A - state[0][0]) * (math.cos(state[2][0] - math.pi/2) / pow(math.sin(state[2][0] - math.pi/2), 2.0))
+        MCB = -(A - state[0][0]) * (math.cos(state_side) / pow(math.sin(state_side), 2.0))
     elif sel_side_laser == 1:
         MAB = 0
-        MBB = 1 / math.cos(state[2][0] - math.pi/2)
-        MCB = -(B - state[1][0]) * (math.cos(state[2][0] - math.pi/2) / pow(math.sin(state[2][0] - math.pi/2), 2.0))
+        MBB = 1 / math.cos(state_side)
+        MCB = -(B - state[1][0]) * (math.cos(state_side) / pow(math.sin(state_side), 2.0))
     elif sel_side_laser == 2:
-        MAB = -1 / math.sin(state[2][0] - math.pi/2)
+        MAB = -1 / math.sin(state_side)
         MBB = 0
-        MCB = state[0][0] * (math.cos(state[2][0] - math.pi/2) / pow(math.sin(state[2][0] - math.pi/2), 2.0))
+        MCB = state[0][0] * (math.cos(state_side) / pow(math.sin(state_side), 2.0))
     else:
         MAB = 0
-        MBB = 1 / math.cos(state[2][0] - math.pi/2)
-        MCB = state[1][0] * (math.sin(state[2][0] - math.pi/2) / pow(math.cos(state[2][0] - math.pi/2), 2.0))
+        MBB = 1 / math.cos(state_side)
+        MCB = state[1][0] * (math.sin(state_side) / pow(math.cos(state_side), 2.0))
 
     Ht = np.array([[MAA, MBA, MCA, 0],
                    [MAB, MBB, MCB, 0],
@@ -270,9 +275,15 @@ def main():
     for i in range(inputVal.shape[0]):
         Fk = f_update(x_best, inputVal[i])
         Gk = g_update(x_best)
-        ut = np.array([inputVal[i]])
+        wl = pwm_to_w_velocity(inputVal[i][0])
+        wr = pwm_to_w_velocity(inputVal[i][1])
+        ut = np.array([[wl,wr]])
         xPri = np.add(np.dot(Fk, x_best), np.dot(Gk, ut.T))
         x_best = xPri
+        if x_best[2][0] < 0:  # Correct orientation for below 0 degrees and above 360 degrees
+            x_best[2][0] = x_best[2][0] + math.pi * 2
+        elif x_best[2][0] >= math.pi * 2:
+            x_best[2][0] = x_best[2][0] - math.pi * 2
         PPri = np.add(np.dot(np.dot(Fk, np.array(Pk)), Fk.T), Qk)
         Pk = PPri
         zk = np.array([outputVal[i]])
@@ -281,6 +292,10 @@ def main():
         xPost = (np.add(x_best, np.dot(K, (np.subtract(zk.T, np.dot(Hk, x_best))))))
         PPost = np.dot(np.subtract(id_mat, np.dot(K, Hk)), Pk)
         x_best = xPost
+        if x_best[2][0] < 0:  # Correct orientation for below 0 degrees and above 360 degrees
+            x_best[2][0] = x_best[2][0] + math.pi * 2
+        elif x_best[2][0] >= math.pi * 2:
+            x_best[2][0] = x_best[2][0] - math.pi * 2
         Pk = PPost
         state_file_2.write(str(round(x_best[0][0], 2)) + ', ' + str(round(x_best[1][0], 2)) + ', '
                            + str(round(x_best[2][0], 2)) + ',' + str(round(x_best[3][0], 2)) + "\n")
