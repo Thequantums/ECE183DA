@@ -22,26 +22,26 @@ A = 530          # X ceiling(mm)
 B = 400          # Y ceiling(mm)
 T = .1           # Sampling Period(s)
 M = 25           # Magnetometer magnitude (+-6)(uT)
-R = 50           # Radius of Wheel (mm)
-L = 90           # Width of Robot (mm)
+R = 40           # Radius of Wheel (mm)
+L = 85           # Width of Robot (mm)
 
 # Standard Deviations (square root of variances)
-x_var = 10
-y_var = 10
+x_var = .1
+y_var = .1
 theta_var = .01
-theta_dot_var = .01
+theta_dot_var = .001
 
-d1_var = 5
-d2_var = 5
+d1_var = 2
+d2_var = 2
 mx_var = 3
 my_var = 3
-gyro_var = 10
+gyro_var = .01
 
 
 # Global value for STATE
 x = 265            # X coord
 y = 200            # Y coord
-theta = 1          # Heading
+theta = 0          # Heading
 theta_dot = 0      # Angular Velocity
 
 # Global value for NEXT STATE
@@ -197,13 +197,16 @@ def the_d(special_theta):
     global x
     global y
     d = [0, 0, 0, 0] # initialize to zero
-    if special_theta == math.pi/2 or special_theta == 3*math.pi/2: # To handle dividing by zero,  set to mock infinity
+    if (math.pi / 2 + .1 >= special_theta >= math.pi / 2 - .1)\
+        or (3 * math.pi / 2 + .1 >= special_theta >= 3 * math.pi / 2 - .1):  # To handle large numbers
         d[0] = 1000000
         d[2] = 1000000
     else:
         d[0] = (A - x) / math.cos(special_theta)
         d[2] = -x / math.cos(special_theta)
-    if special_theta == 0 or math.pi: # To handle dividing by zero, set to mock infinity
+    if (.1 >= special_theta >= 0)\
+        or (2*math.pi >= special_theta >= 2*math.pi - .1)\
+        or (math.pi + .1 >= special_theta >= math.pi - .1):  # To handle large numbers
         d[1] = 1000000
         d[3] = 1000000
     else:
@@ -242,6 +245,7 @@ def main():
     global y_next
     global theta_next
     global theta_dyn
+    global theta_dot_var
     global XStateList
     global YStateList
     global ThetaStateList
@@ -320,6 +324,7 @@ def main():
     plt.show()
     print(XStateList)
     print(YStateList)
+
 
 if __name__ == "__main__":
     main()
