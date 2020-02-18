@@ -9,6 +9,7 @@ T = 0.1
 A = 530
 B = 400
 
+Hk_Correction = np.array([[A],[B],[0]])
 
 def init(Rwl = 20 ,Ll = 85 ,Tl = 0.1 ,Al = 530 ,Bl = 400):
     global Rw
@@ -53,8 +54,8 @@ def g_update(state):
 def h_update(state):
     global A
     global B
-    front_laser = [0, 0, 0, 0]
-    side_laser = [0, 0, 0, 0]
+    front_laser = [0, 0, 0, 0]  #d1
+    side_laser = [0, 0, 0, 0]   #d2
     state_side = state[2][0] - math.pi/2
     if state_side < 0:  # Correct orientation for below 0 degrees and above 360 degrees
         state_side = state_side + math.pi * 2
@@ -101,14 +102,15 @@ def h_update(state):
 
     sel_front_laser = front_laser.index(min(front_laser))
     sel_side_laser = side_laser.index(min(side_laser))
-
-    if sel_front_laser == 0:
+    print('sel side'+ str(sel_side_laser))
+    print('sel front' + str(sel_front_laser))
+    if sel_front_laser == 0:    #fixed
         MAA = -1 / math.cos(state[2][0])
         MBA = 0
         MCA = (A - state[0][0]) * (math.sin(state[2][0]) / pow(math.cos(state[2][0]), 2.0))
     elif sel_front_laser == 1:
         MAA = 0
-        MBA = -1 / math.sin(state[2][0])
+        MBA = -1 / math.cos(state[2][0])
         MCA = -(B - state[1][0]) * (math.cos(state[2][0]) / pow(math.sin(state[2][0]), 2.0))
     elif sel_front_laser == 2:
         MAA = -1 / math.cos(state[2][0])
@@ -120,7 +122,7 @@ def h_update(state):
         MCA = state[1][0] * (math.cos(state[2][0]) / pow(math.sin(state[2][0]), 2.0))
 
     if sel_side_laser == 0:
-        MAB = -1 / math.sin(state_side)
+        MAB = 1 / math.sin(state_side)
         MBB = 0
         MCB = -(A - state[0][0]) * (math.cos(state_side) / pow(math.sin(state_side), 2.0))
     elif sel_side_laser == 1:
@@ -131,46 +133,48 @@ def h_update(state):
         MAB = -1 / math.sin(state_side)
         MBB = 0
         MCB = state[0][0] * (math.cos(state_side) / pow(math.sin(state_side), 2.0))
-    else:
+    else:   #fixed
         MAB = 0
-        MBB = 1 / math.cos(state_side)
+        MBB = 1 / math.sin(state_side)
         MCB = state[1][0] * (math.sin(state_side) / pow(math.cos(state_side), 2.0))
 
     Ht = np.array([[MAA, MBA, MCA, 0],
                    [MAB, MBB, MCB, 0],
                    [0, 0, 0, 1]])
+    print(MBB)
 
     return Ht
 
 def EKF(x_best,Pk,inputVal, outputVal,Qk,Rk):
-    x_estimates = [x_best.tolist()]
-    P_estimates = [Pk.tolist()]
-    for i in range(inputVal.shape[0]):
-        Fk = f_update(x_best, inputVal[i])
-        Gk = g_update(x_best)
-        wl = bot.pwm_to_w_velocity(inputVal[i][0])
-        wr = bot.pwm_to_w_velocity(inputVal[i][1])
-        ut = np.array([[wl, wr]])
-        xPri = np.add(np.dot(Fk, x_best), np.dot(Gk, ut.T))
+    x_estimates = [x_best.tolist()]     #Add initial state to estimate list
+    P_estimates = [Pk.tolist()]     #Add initial covariance to estimate list
+    for i in range(inputVal.shape[0]):      #loop over each input value
+        Fk = f_update(x_best, inputVal[i])  #Calculate Fk update
+        Gk = g_update(x_best)       #Calculate Gk update
+        wl = bot.pwm_to_w_velocity(inputVal[i][0])  #get angular velocity for left wheel
+        wr = bot.pwm_to_w_velocity(inputVal[i][1])  #get angular velocity for right wheel
+        ut = np.array([[wl, wr]])       #build input array
+        xPri = np.add((Fk @ x_best), (Gk @ ut.T))     #do calculation for Priori state
         x_best = xPri
         # if x_best[2][0] < 0:  # Correct orientation for below 0 degrees and above 360 degrees
         #    x_best[2][0] = x_best[2][0] + math.pi * 2
         # elif x_best[2][0] >= math.pi * 2:
         #    x_best[2][0] = x_best[2][0] - math.pi * 2
-        PPri = np.add(np.dot(np.dot(Fk, np.array(Pk)), Fk.T), Qk)
+        PPri = np.add((Fk @ np.array(Pk) @ Fk.T), Qk)   #do calculation for Priori covariance
         Pk = PPri
-        zk = np.array([outputVal[i]])
-        Hk = h_update(x_best)
-        K = np.dot(np.dot(Pk, Hk.T), np.linalg.inv(np.add(np.dot(np.dot(Hk, Pk), Hk.T), Rk)))
-        xPost = (np.add(x_best, np.dot(K, (np.subtract(zk.T, np.dot(Hk, x_best))))))
-        PPost = np.dot(np.subtract(np.identity(4), np.dot(K, Hk)), Pk)
+        zk = np.array([outputVal[i]])   #build output array
+        Hk = h_update(x_best)   #perform Hk update
+        K = np.dot((Pk @ Hk.T), np.linalg.inv(np.add(np.dot(np.dot(Hk, Pk), Hk.T), Rk)))   #Calculate Kalman Gain
+        print((Hk @ x_best)+Hk_Correction)
+        xPost = (np.add(x_best, np.dot(K, (np.subtract(zk.T, ((Hk @ x_best)+Hk_Correction))))))    #Calculate posteriori state
+        PPost = np.dot(np.subtract(np.identity(4), np.dot(K, Hk)), Pk)      #Calculate Posteriori covariance
         x_best = xPost
         # if x_best[2][0] < 0:  # Correct orientation for below 0 degrees and above 360 degrees
         #    x_best[2][0] = x_best[2][0] + math.pi * 2
         # elif x_best[2][0] >= math.pi * 2:
         #    x_best[2][0] = x_best[2][0] - math.pi * 2
         Pk = PPost
-        x_estimates.append(x_best.tolist())
-        P_estimates.append(Pk.tolist())
+        x_estimates.append(x_best.tolist()) #add posteriori to state list
+        P_estimates.append(Pk.tolist())     #add posteriori to covariance list
     print(x_estimates)
     return [x_estimates,P_estimates]
