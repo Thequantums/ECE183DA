@@ -56,11 +56,7 @@ def h_update(state):
     global B
     front_laser = [0, 0, 0, 0]  #d1
     side_laser = [0, 0, 0, 0]   #d2
-    state_side = state[2][0] - math.pi/2
-    if state_side < 0:  # Correct orientation for below 0 degrees and above 360 degrees
-        state_side = state_side + math.pi * 2
-    elif state_side >= math.pi * 2:
-        state_side = state_side - math.pi * 2
+    state_side = (state[2][0] - math.pi/2) % (2*math.pi)
 
     if (math.pi / 2 + .1 >= state[2][0] >= math.pi / 2 - .1) \
             or (3 * math.pi / 2 + .1 >= state[2][0] >= 3 * math.pi / 2 - .1):  # To handle large numbers
