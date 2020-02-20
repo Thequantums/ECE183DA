@@ -112,7 +112,7 @@ def state_dynamics(vl, vr):
     theta_next = theta + theta_dyn*T + np.random.normal(0, theta_var)
     if theta_next < 0:  # Correct orientation for below 0 pi and above 2 pi
         theta_next = theta_next + math.pi * 2
-    elif theta_next > math.pi * 2:
+    elif theta_next >= math.pi * 2:
         theta_next = theta_next - math.pi * 2
     return
 
@@ -215,7 +215,6 @@ def the_d(special_theta):
     for x in range(4): # To reject negative values, set to mock infinity
         if d[x] < 0:
             d[x] = 1000000
-
     return min(d)  # chooses min pos
 
 
@@ -260,7 +259,7 @@ def main():
 
     myfile = open("pwm_data.txt", 'r')  # file to read
     wr_file = open('simulation_data.txt', 'w')  # file to write observations
-    state_file = open('simulation_states', 'w') # file to write states for comparison
+    state_file = open('simulation_states.txt', 'w') # file to write states for comparison
     wr_file.write("pwml   pwmr   d1   d2   mx   my   gyro   timestamp\n")
     state_file.write("x y theta theta_dot\n")
     state_file.write(str(round(x, 2)) + ', ' + str(round(y, 2)) + ', ' + str(round(theta, 2)) + ', '
