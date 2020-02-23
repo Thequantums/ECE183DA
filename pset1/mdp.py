@@ -1,6 +1,6 @@
 import numpy as np
 import sys
-
+import time
 
 # state class
 class S:
@@ -316,12 +316,14 @@ def improve_pi(v):
                 # The actual Bellman Backup that sums the expected values for all actions
                 action_values[policy] += T(all_state[i], policy, all_state[j])*(R(all_state[i])+gamma*v[all_state[j].x][all_state[j].y])
         # Choose the action that increases V the most
-        pi_improved[all_state[i].x][all_state[i].y] = np.argmax[action_values]
+        pi_improved[all_state[i].x][all_state[i].y] = np.argmax(action_values)
     return pi_improved
 
 
 # Policy Iteration Algorithm (updated)
 def policy_iteration():
+    global policy_iteration_time
+    start = time.clock()
     # Initialize policy to all lefts
     pi = np.zeros((sizeof_x, sizeof_y))
     pi = init_policy(pi)
@@ -336,11 +338,13 @@ def policy_iteration():
         # Improvement Step (Improve policy under greedy one step lookahead using V under current policy)
         improved_pi = improve_pi(v_opt)
         # If policy did not change then optimal policy found
-        if improved_pi == pi:
+        if (np.array_equal(improved_pi,pi)):
             break
         # Otherwise update the current policy and run next iteration
         pi = improved_pi
-    return pi, v_opt
+    end = time.clock()
+    policy_iteration_time = end - start
+    return pi, v_opt, policy_iteration_time
 
 
 ## QUESTION: 3d
@@ -440,6 +444,24 @@ def display_v_pi(v_pi):
             sys.stdout.write(buffer)
         sys.stdout.write("\n")
 
+def display_policy_ingridworld(pi):
+    for y in range(sizeof_y):
+        new_y = sizeof_y - y -1
+        for x in range(sizeof_x):
+            if pi[x][new_y] == 0:
+                policy = 'stay '
+            elif pi[x][new_y] == 1:
+                policy = 'left '
+            elif pi[x][new_y] == 2:
+                policy = 'right'
+            elif pi[x][new_y] == 3:
+                policy = 'up   '
+            else:
+                policy = 'down '
+            #print("X= " + str(x) + ", Y= " + str(y) + ", policy: " + policy)
+            buffer = policy + '  '
+            sys.stdout.write(buffer)
+        sys.stdout.write("\n")
 
 def main():
     init_T(T_matrix, pe)
@@ -453,10 +475,11 @@ def main():
     # max_po = opt_policy_one_step(V_pi)
     # display_policy(max_po)
     # V_pi = np.zeros((sizeof_x,sizeof_y))
-    opt_policy, opt_value = policy_iteration()
+    opt_policy, opt_value, policy_iteration_time = policy_iteration()
     display_policy(opt_policy)
     display_v_pi(opt_value)
-
+    display_policy_ingridworld(opt_policy)
+    print("CPU time for policy iteration is " + str((policy_iteration_time * pow(10,3))) + " ms")
 
 if __name__ == '__main__':
     main()
