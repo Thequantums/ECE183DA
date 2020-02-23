@@ -124,50 +124,70 @@ def cant_move(state, tran_state):
     else:
         return 0
 
+def obstatcle_state(i):
+    if (i==6 or i==7 or i==16 or i==17):
+        return 1
+    return 0
+
+
 # this is for each policy
 def compute_V_pi(pi):
     V_pi = np.zeros((sizeof_x,sizeof_y))
-    V_pi_new = np.zeros((sizeof_x,sizeof_y))
-    V_pi_old = np.zeros((sizeof_x,sizeof_y))
+#    V_pi_new = np.zeros((sizeof_x,sizeof_y))
+#    V_pi_old = np.zeros((sizeof_x,sizeof_y))
     list_V_pi = []
     accum = 0
-    for it in range(10000):
+    #only right action first
+    for it in range(1000):
+        V_pi_new = np.zeros((sizeof_x,sizeof_y))
+        V_pi_old = np.zeros((sizeof_x,sizeof_y))
         for i in range(sizeof_state):
-            for j in range(5):
-                s = transitioned_state(all_state[i],j)
-                if (cant_move(all_state[i],s)):
-                    transitonal_prob = 0
-                else:
-                    transitonal_prob = T(all_state[i],pi[all_state[i].x][all_state[i].y], s)
-                accum = accum + transitonal_prob * (R(all_state[i]) + gamma * V_pi[s.x][s.y])
+            accum = 0
+            if (obstatcle_state(i) == 0):
+                for j in range(5):
+                    s = transitioned_state(all_state[i],j)
+                    if (pi[all_state[i].x][all_state[i].y] != 0 and cant_move(all_state[i],s)):
+                        transitonal_prob = 0
+                    else:
+                        transitonal_prob = T(all_state[i],pi[all_state[i].x][all_state[i].y], s)
+                    accum = accum + transitonal_prob * (R(all_state[i]) + gamma * V_pi[s.x][s.y])
+                    #print(str(j) + ' ' + str(s.x) + ' ' + str(s.y) + ' ' + str(transitonal_prob) + ' ' + str(accum))
+            #else:
+                #print("Obstacle")
             #updating V for each state
             V_pi_new[all_state[i].x][all_state[i].y] = accum
+            #print('\n')
         V_pi_old = V_pi
         V_pi = V_pi_new
+        display_V_pi(V_pi)
         count = 0
         for c in range(sizeof_state):
             count = count + (V_pi_new[all_state[c].x][all_state[c].y] - V_pi_old[all_state[c].x][all_state[c].y])
-        if ( (count/sizeof_state) < 0.01 ):
+        print((abs(count)/sizeof_state))
+        if ( (abs(count)/sizeof_state) < 0.001 ):
+            print(it)
             break;
     return V_pi
 
 ## QUESTION: 3d
 #basically give best policy under one iteration using V_pi similar function to above
+#note we are discarding the possible optimal policy of staying still which Action = 0
 def opt_policy_one_step(V_pi):
     List_pi = []
-    V_pi_new = np.zeros((sizeof_x,sizeof_y))
-    max_policy = np.zeros((sizeof_x,sizeof_y))
+    max_policy = np.zeros((sizeof_x,sizeof_y)) #max_policy for all states at only one step
     accum = 0
     for i in range(sizeof_state):
         for policy in range(4):
-            for j in range(5):
-                s = transitioned_state(all_state[i],j)
-                if (cant_move(all_state[i],s)):
-                    transitonal_prob = 0
-                else:
-                    transitonal_prob = T(all_state[i],policy+1, s)
-                accum = accum +  transitonal_prob * (R(all_state[i]) + gamma * V_pi[s.x][s.y])
-            #updating V for each state
+            accum = 0
+            if (obstatcle_state(i) == 0):
+                for j in range(4):
+                    s = transitioned_state(all_state[i],j)
+                    if ((policy + 1) != 0 and cant_move(all_state[i],s)):
+                        transitonal_prob = 0
+                    else:
+                        transitonal_prob = T(all_state[i],policy+1, s)
+                    accum = accum + transitonal_prob * (R(all_state[i]) + gamma * V_pi[s.x][s.y])
+                    #print(str(j) + ' ' + str(s.x) + ' ' + str(s.y) + ' ' + str(transitonal_prob) + ' ' + str(accum))
             List_pi.append(accum)
         max = List_pi[0]
         max_A = 0
@@ -212,7 +232,7 @@ def compute_opt_policy():
 def display_V_pi(V_pi):
     for y in range(sizeof_y):
         for x in range(sizeof_x):
-            buffer = str(V_pi[x][sizeof_y-y-1]) + ", "
+            buffer = str(round(V_pi[x][sizeof_y-y-1],2)) + ", "
             sys.stdout.write(buffer)
         sys.stdout.write("\n")
 
@@ -226,6 +246,8 @@ def main():
     display_policy(policy)
     V_pi = compute_V_pi(policy)
     display_V_pi(V_pi)
+    max_po = opt_policy_one_step(V_pi)
+    display_policy(max_po)
     #V_pi = np.zeros((sizeof_x,sizeof_y))
 
 if __name__ == '__main__':
