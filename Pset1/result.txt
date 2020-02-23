@@ -1,4 +1,5 @@
-Original Run with gamma = .9 and pe =.01 and one-time initial outputs for initial questions \n
+Original Run with gamma = .9 and pe =.01 and one-time initial outputs for initial questions
+
 Display initial policy: 
 left   left   left   left   left   
 left   left   left   left   left   
@@ -15,13 +16,14 @@ right  right  stay   left   left
 down   -----  -----  down   left   
 right  right  stay   left   left   
 
-Policy iteration policy result: 
+Policy resulting from Policy Iteration: 
 down   down   down   down   left   
 down   left   right  down   left   
 down   -----  -----  down   left   
 down   right  right  down   left   
 down   -----  -----  down   left   
 right  right  stay   left   left   
+
 With V(s) function: 
  47.48,  42.73,  46.68,  51.67, -54.20, 
  52.81,  47.49,  51.90,  57.73, -48.76, 
@@ -29,17 +31,19 @@ With V(s) function:
  65.34,  58.60,  65.44,  72.00, -35.93, 
  72.69,  -----   -----   80.37, -28.40, 
  80.84,  89.91,  100.00,  89.66, -20.06, 
-CPU time for policy iteration is 3553.2472769991728 ms 
-
+CPU time for policy iteration is 3863.0493359960383 ms 
 Optimal Path:  [[2, 5], [2, 4], [3, 4], [3, 3], [3, 2], [3, 1], [3, 0], [2, 0]] 
- Sum of discounted rewards:  95.66 Expected Sum of Discounted Rewards:  46.675982383936486
-Value iteration policy result: 
+ Sum of discounted rewards:  95.66 
+ Expected Sum of Discounted Rewards:  46.675982383936486
+
+Policy resulting from Value: 
 down   down   down   down   left   
 down   left   right  down   left   
 down   -----  -----  down   left   
 down   right  right  down   left   
 down   -----  -----  down   left   
 right  right  stay   left   left   
+
 With V(s) function: 
  47.48,  42.73,  46.68,  51.67, -54.20, 
  52.81,  47.49,  51.90,  57.73, -48.76, 
@@ -47,20 +51,21 @@ With V(s) function:
  65.34,  58.60,  65.44,  72.00, -35.93, 
  72.69,  -----   -----   80.37, -28.40, 
  80.84,  89.91,  100.00,  89.66, -20.06, 
-CPU time for value iteration is 3814.034831011668 ms 
-
+CPU time for value iteration is 4053.401965997182 ms
 Optimal Path:  [[2, 5], [2, 4], [3, 4], [3, 3], [3, 2], [3, 1], [3, 0], [2, 0]] 
- Sum of discounted rewards:  95.66 Expected Sum of Discounted Rewards:  46.675982383936486
+ Sum of discounted rewards:  95.66 
+ Expected Sum of Discounted Rewards:  46.675982383936486
 ###########################################################################\n
-Run with lower gamma = .5 and original pe =.01 \n
+Run with lower gamma = .5 and original pe =.01
 
-Policy iteration policy result: 
+Policy resulting from Policy Iteration: 
 down   down   down   down   left   
 down   left   right  down   left   
 down   -----  -----  down   left   
 down   right  right  down   left   
 down   -----  -----  down   left   
 right  right  stay   left   left   
+
 With V(s) function: 
   0.15,   0.08,   0.09,   0.06, -100.35, 
   0.30,   0.15,   0.18,   0.37, -100.19, 
@@ -68,17 +73,19 @@ With V(s) function:
   1.23,   1.05,   2.11,   2.24, -99.26, 
   2.47,  -----   -----    4.76, -98.00, 
   4.96,   9.96,  20.00,   9.82, -95.49, 
-CPU time for policy iteration is 667.4324659979902 ms 
-
+CPU time for policy iteration is 656.9374749960843 ms 
 Optimal Path:  [[2, 5], [2, 4], [3, 4], [3, 3], [3, 2], [3, 1], [3, 0], [2, 0]] 
- Sum of discounted rewards:  0.31 Expected Sum of Discounted Rewards:  0.09070829806482354
-Value iteration policy result: 
+ Sum of discounted rewards:  0.31 
+ Expected Sum of Discounted Rewards:  0.09070829806482354
+
+Policy resulting from Value: 
 down   down   down   down   left   
 down   left   right  down   left   
 down   -----  -----  down   left   
 down   right  right  down   left   
 down   -----  -----  down   left   
 right  right  stay   left   left   
+
 With V(s) function: 
   0.15,   0.08,   0.09,   0.06, -100.35, 
   0.30,   0.15,   0.18,   0.37, -100.19, 
@@ -86,20 +93,21 @@ With V(s) function:
   1.23,   1.05,   2.11,   2.24, -99.26, 
   2.47,  -----   -----    4.76, -98.00, 
   4.96,   9.96,  20.00,   9.82, -95.49, 
-CPU time for value iteration is 627.8205709968461 ms 
-
+CPU time for value iteration is 631.1979899910511 ms
 Optimal Path:  [[2, 5], [2, 4], [3, 4], [3, 3], [3, 2], [3, 1], [3, 0], [2, 0]] 
- Sum of discounted rewards:  0.31 Expected Sum of Discounted Rewards:  0.09070829806482575
+ Sum of discounted rewards:  0.31 
+ Expected Sum of Discounted Rewards:  0.09070829806482575
 ###########################################################################\n
-Run with lowest gamma = .01 and original pe =.01 \n
+Run with lowest gamma = .01 and original pe =.01
 
-Policy iteration policy result: 
+Policy resulting from Policy Iteration: 
 down   left   stay   stay   left   
 down   left   left   stay   left   
 down   -----  -----  stay   left   
 right  right  stay   left   left   
 down   -----  -----  down   left   
 right  right  stay   left   left   
+
 With V(s) function: 
   0.00,  0.00,  0.00,  0.00, -100.08, 
   0.00,   0.00,  0.00,  0.00, -100.08, 
@@ -107,17 +115,19 @@ With V(s) function:
   0.01,   0.11,   1.11,   0.09, -100.07, 
   0.01,  -----   -----    0.08, -100.07, 
   0.11,   1.10,  11.11,   1.08, -99.97, 
-CPU time for policy iteration is 247.39529300131835 ms 
-
+CPU time for policy iteration is 254.29729399911594 ms 
 Optimal Path:  [[2, 5]] 
- Sum of discounted rewards:  0.0 Expected Sum of Discounted Rewards:  0.0
-Value iteration policy result: 
+ Sum of discounted rewards:  0.0 
+ Expected Sum of Discounted Rewards:  0.0
+
+Policy resulting from Value: 
 down   left   stay   stay   left   
 down   left   left   stay   left   
 down   -----  -----  stay   left   
 right  right  stay   left   left   
 down   -----  -----  down   left   
 right  right  stay   left   left   
+
 With V(s) function: 
   0.00,  0.00,  0.00,  0.00, -100.08, 
   0.00,   0.00,  0.00,  0.00, -100.08, 
@@ -125,20 +135,21 @@ With V(s) function:
   0.01,   0.11,   1.11,   0.09, -100.07, 
   0.01,  -----   -----    0.08, -100.07, 
   0.11,   1.10,  11.11,   1.08, -99.97, 
-CPU time for value iteration is 222.60135700344108 ms 
-
+CPU time for value iteration is 225.35133200290147 ms
 Optimal Path:  [[2, 5]] 
- Sum of discounted rewards:  0.0 Expected Sum of Discounted Rewards:  0.0
+ Sum of discounted rewards:  0.0 
+ Expected Sum of Discounted Rewards:  0.0
 ###########################################################################\n
-Run with original = .9 and higher error pe =.1 \n
+Run with original = .9 and higher error pe =.1
 
-Policy iteration policy result: 
+Policy resulting from Policy Iteration: 
 down   left   down   down   left   
 down   left   right  down   left   
 down   -----  -----  down   left   
 down   left   right  down   left   
 down   -----  -----  down   left   
 right  right  stay   left   left   
+
 With V(s) function: 
  44.09,  39.38,  35.53,  36.94, -74.11, 
  49.52,  43.99,  39.66,  44.41, -67.56, 
@@ -146,17 +157,19 @@ With V(s) function:
  62.63,  53.36,  54.41,  62.77, -51.17, 
  70.59,  -----   -----   73.88, -41.27, 
  79.28,  89.04,  100.00,  86.16, -30.57, 
-CPU time for policy iteration is 4750.896919998922 ms 
-
+CPU time for policy iteration is 4751.994295991608 ms 
 Optimal Path:  [[2, 5], [2, 4], [3, 4], [3, 3], [3, 2], [3, 1], [3, 0], [2, 0]] 
- Sum of discounted rewards:  95.66 Expected Sum of Discounted Rewards:  35.529434114645476
-Value iteration policy result: 
+ Sum of discounted rewards:  95.66 
+ Expected Sum of Discounted Rewards:  35.529434114645476
+
+Policy resulting from Value: 
 down   left   down   down   left   
 down   left   right  down   left   
 down   -----  -----  down   left   
 down   left   right  down   left   
 down   -----  -----  down   left   
 right  right  stay   left   left   
+
 With V(s) function: 
  44.09,  39.38,  35.53,  36.94, -74.11, 
  49.52,  43.99,  39.66,  44.41, -67.56, 
@@ -164,20 +177,21 @@ With V(s) function:
  62.63,  53.36,  54.41,  62.77, -51.17, 
  70.59,  -----   -----   73.88, -41.27, 
  79.28,  89.04,  100.00,  86.16, -30.57, 
-CPU time for value iteration is 3762.9861990135396 ms 
-
+CPU time for value iteration is 3719.6548740030266 ms
 Optimal Path:  [[2, 5], [2, 4], [3, 4], [3, 3], [3, 2], [3, 1], [3, 0], [2, 0]] 
- Sum of discounted rewards:  95.66 Expected Sum of Discounted Rewards:  35.529434114645476
+ Sum of discounted rewards:  95.66 
+ Expected Sum of Discounted Rewards:  35.529434114645476
 ###########################################################################\n
-Run with original = .9 and even higher error pe =.5 \n
+Run with original = .9 and even higher error pe =.5
 
-Policy iteration policy result: 
+Policy resulting from Policy Iteration: 
 down   left   left   stay   left   
 down   left   left   stay   left   
 down   -----  -----  stay   left   
 down   left   left   stay   left   
 down   -----  -----  down   left   
 right  right  stay   left   left   
+
 With V(s) function: 
  23.20,  19.34,  14.27,  0.00, -150.94, 
  28.10,  22.28,  15.93,  0.00, -150.91, 
@@ -185,17 +199,19 @@ With V(s) function:
  42.92,  25.87,  15.30,  0.00, -149.03, 
  55.51,  -----   -----   15.16, -136.11, 
  67.89,  82.44,  100.00,  51.15, -111.67, 
-CPU time for policy iteration is 3320.8894259878434 ms 
-
+CPU time for policy iteration is 3322.2619050065987 ms 
 Optimal Path:  [[2, 5], [1, 5], [0, 5], [0, 4], [0, 3], [0, 2], [0, 1], [0, 0], [1, 0], [2, 0]] 
- Sum of discounted rewards:  77.48 Expected Sum of Discounted Rewards:  14.27495308604761
-Value iteration policy result: 
+ Sum of discounted rewards:  77.48 
+ Expected Sum of Discounted Rewards:  14.27495308604761
+
+Policy resulting from Value: 
 down   left   left   stay   left   
 down   left   left   stay   left   
 down   -----  -----  stay   left   
 down   left   left   stay   left   
 down   -----  -----  down   left   
 right  right  stay   left   left   
+
 With V(s) function: 
  23.20,  19.34,  14.27,  0.00, -150.94, 
  28.10,  22.28,  15.93,  0.00, -150.91, 
@@ -203,20 +219,21 @@ With V(s) function:
  42.92,  25.87,  15.30,  0.00, -149.03, 
  55.51,  -----   -----   15.16, -136.11, 
  67.89,  82.44,  100.00,  51.15, -111.67, 
-CPU time for value iteration is 4164.562307007145 ms 
-
+CPU time for value iteration is 3742.8396300092572 ms
 Optimal Path:  [[2, 5], [1, 5], [0, 5], [0, 4], [0, 3], [0, 2], [0, 1], [0, 0], [1, 0], [2, 0]] 
- Sum of discounted rewards:  77.48 Expected Sum of Discounted Rewards:  14.27495308604761
+ Sum of discounted rewards:  77.48 
+ Expected Sum of Discounted Rewards:  14.27495308604761
 ###########################################################################\n
-Run with original = .9 and highest error pe =.9 \n
+Run with original = .9 and highest error pe =.9
 
-Policy iteration policy result: 
+Policy resulting from Policy Iteration: 
 down   left   left   stay   left   
 down   left   left   stay   left   
 down   -----  -----  stay   left   
 down   up     stay   stay   left   
 down   -----  -----  stay   left   
 right  right  stay   stay   left   
+
 With V(s) function: 
   2.55,   1.71,   0.89,  0.00, -254.78, 
   4.01,   2.16,   1.02,  0.00, -254.78, 
@@ -224,17 +241,19 @@ With V(s) function:
  12.82,   9.15,   10.00,  0.00, -254.78, 
  23.32,  -----   -----   0.00, -254.78, 
  38.55,  62.28,  100.00,  0.00, -254.78, 
-CPU time for policy iteration is 6369.581576000201 ms 
-
+CPU time for policy iteration is 6409.089242995833 ms 
 Optimal Path:  [[2, 5], [1, 5], [0, 5], [0, 4], [0, 3], [0, 2], [0, 1], [0, 0], [1, 0], [2, 0]] 
- Sum of discounted rewards:  77.48 Expected Sum of Discounted Rewards:  0.8863754796467174
-Value iteration policy result: 
+ Sum of discounted rewards:  77.48 
+ Expected Sum of Discounted Rewards:  0.8863754796467174
+
+Policy resulting from Value: 
 down   left   left   stay   left   
 down   left   left   stay   left   
 down   -----  -----  stay   left   
 down   up     stay   stay   left   
 down   -----  -----  stay   left   
 right  right  stay   stay   left   
+
 With V(s) function: 
   2.55,   1.71,   0.89,  0.00, -254.78, 
   4.01,   2.16,   1.02,  0.00, -254.78, 
@@ -242,20 +261,21 @@ With V(s) function:
  12.82,   9.15,   10.00,  0.00, -254.78, 
  23.32,  -----   -----   0.00, -254.78, 
  38.55,  62.28,  100.00,  0.00, -254.78, 
-CPU time for value iteration is 3728.6236390064005 ms 
-
+CPU time for value iteration is 4113.60769100429 ms
 Optimal Path:  [[2, 5], [1, 5], [0, 5], [0, 4], [0, 3], [0, 2], [0, 1], [0, 0], [1, 0], [2, 0]] 
- Sum of discounted rewards:  77.48 Expected Sum of Discounted Rewards:  0.8863754796823942
+ Sum of discounted rewards:  77.48 
+ Expected Sum of Discounted Rewards:  0.8863754796823942
 ###########################################################################\n
-Run with lowest gamma = .1 and highest error pe =.9 \n
+Run with lowest gamma = .1 and highest error pe =.9
 
-Policy iteration policy result: 
+Policy resulting from Policy Iteration: 
 down   left   stay   stay   left   
 down   left   left   stay   left   
 down   -----  -----  stay   left   
 right  right  stay   stay   left   
 down   -----  -----  stay   left   
 right  right  stay   stay   left   
+
 With V(s) function: 
   0.00,  0.00,  0.00,  0.00, -107.24, 
   0.00,   0.00,  0.00,  0.00, -107.24, 
@@ -263,17 +283,19 @@ With V(s) function:
   0.00,   0.04,   1.11,  0.00, -107.24, 
   0.00,  -----   -----   0.00, -107.24, 
   0.01,   0.38,  11.11,  0.00, -107.24, 
-CPU time for policy iteration is 305.55018900486175 ms 
-
+CPU time for policy iteration is 315.5511280056089 ms 
 Optimal Path:  [[2, 5]] 
- Sum of discounted rewards:  0.0 Expected Sum of Discounted Rewards:  0.0
-Value iteration policy result: 
+ Sum of discounted rewards:  0.0 
+ Expected Sum of Discounted Rewards:  0.0
+
+Policy resulting from Value: 
 down   left   stay   stay   left   
 down   left   left   stay   left   
 down   -----  -----  stay   left   
 right  right  stay   stay   left   
 down   -----  -----  stay   left   
 right  right  stay   stay   left   
+
 With V(s) function: 
   0.00,  0.00,  0.00,  0.00, -107.24, 
   0.00,   0.00,  0.00,  0.00, -107.24, 
@@ -281,7 +303,7 @@ With V(s) function:
   0.00,   0.04,   1.11,  0.00, -107.24, 
   0.00,  -----   -----   0.00, -107.24, 
   0.01,   0.38,  11.11,  0.00, -107.24, 
-CPU time for value iteration is 223.8344049983425 ms 
-
+CPU time for value iteration is 221.76830199896358 ms
 Optimal Path:  [[2, 5]] 
- Sum of discounted rewards:  0.0 Expected Sum of Discounted Rewards:  0.0
+ Sum of discounted rewards:  0.0 
+ Expected Sum of Discounted Rewards:  0.0
