@@ -287,7 +287,7 @@ def compute_v_pi(pi):
             # For every state, loop through all possible future states
             for j in range(sizeof_state):
                 # The actual evaluation of pi using the Bellman Backup
-                value += T(all_state[i], pi[i], all_state[j]) * (R(all_state[i]) + gamma * v_pi[all_state[j].x][all_state[j].y])
+                value += T(all_state[i], pi[all_state[i].x][all_state[i].y], all_state[j]) * (R(all_state[i]) + gamma * v_pi[all_state[j].x][all_state[j].y])
             # Fill in entry of v_pi_new
             v_pi_new[all_state[i].x][all_state[i].y] = value
         # Check for convergence
