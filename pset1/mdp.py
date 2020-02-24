@@ -340,7 +340,7 @@ def policy_iteration():
             break
         # Otherwise update the current policy and run next iteration
         pi = improved_pi
-    return pi
+    return pi, v_opt
 
 
 ## QUESTION: 3d
@@ -453,8 +453,9 @@ def main():
     # max_po = opt_policy_one_step(V_pi)
     # display_policy(max_po)
     # V_pi = np.zeros((sizeof_x,sizeof_y))
-    max_policy = policy_iteration()
-    display_policy(max_policy)
+    opt_policy, opt_value = policy_iteration()
+    display_policy(opt_policy)
+    display_v_pi(opt_value)
 
 
 if __name__ == '__main__':
