@@ -22,7 +22,7 @@ class A:
 # Global variable are constant through out the program
 # error probability in fact the robot has equal error probability of slipping to any other 4 states.ex:
 # robot wants to move left, but it has the same probability of moving left as to other 3 directions
-L, H, sizeof_action = 5, 6, 5;
+L, H, sizeof_action = 5, 6, 5
 pe = 0.01
 gamma = 0.9  # Discount factor
 threshold = .001
@@ -71,41 +71,37 @@ def init_T(T_matrix, Pe):
                         elif (j == 1 and x - 1 == x_tr and y == y_tr) or \
                                 (j == 2 and x + 1 == x_tr and y == y_tr) or \
                                 (j == 3 and x == x_tr and y + 1 == y_tr) or \
-                                (j == 4 and x == x_tr and y + 1 == y_tr):
+                                (j == 4 and x == x_tr and y - 1 == y_tr):
                             T_matrix[x][y][j][x_tr][y_tr] = 1 - 3 * Pe / 4
                         # probability of moving to unintended direction that is within bounds is Pe - Pe/4
                         elif (x - 1 == x_tr and y == y_tr) or \
                                 (x + 1 == x_tr and y == y_tr) or \
                                 (x == x_tr and y + 1 == y_tr) or \
-                                (x == x_tr and y + 1 == y_tr):
+                                (x == x_tr and y - 1 == y_tr):
                             T_matrix[x][y][j][x_tr][y_tr] = Pe / 4
-                        # probability of staying still when moving towards a wall/obstacle is 1 - Pe + Pe/4
+                        # probability of staying still in non-corner/non-corrider space when moving towards a wall/obstacle is 1 - Pe + Pe/4
                         elif (x == x_tr and y == y_tr) and \
-                                ((j == 1 and ((x == 0 and 0 < y < 5) or (x == 3 and (y == 3 or y == 1)))) or
-                                 (j == 2 and ((x == 4 and 0 < y < 5) or (x == 0 and (y == 3 or y == 1)))) or
-                                 (j == 3 and ((0 < x < 4 and y == 5) or ((x == 1 or x == 2) and (y == 2 or y == 0)))) or
-                                 (j == 4 and ((0 < x < 4 and y == 0) or ((x == 1 or x == 2) and (y == 2 or y == 4))))):
+                                ((j == 1 and ((x == 0 and 1 < y < 5 and y != 3) or (x == 3 and (y == 3 or y == 1)))) or
+                                 (j == 2 and x == 4 and 0 < y < 5) or
+                                 (j == 3 and 0 < x < 4 and y == 5) or
+                                 (j == 4 and ((x == 3 and y == 0) or ((x == 1 or x == 2) and y == 4)))):
                             T_matrix[x][y][j][x_tr][y_tr] = 1 - 3 * Pe / 4
                         # probability of staying still when moving away from a wall/obstacle is Pe - Pe/4
                         elif (x == x_tr and y == y_tr) and \
-                                (((x == 0 and 0 < y < 5) or (x == 3 and (y == 3 or y == 1))) or
-                                 ((x == 4 and 0 < y < 5) or (x == 0 and (y == 3 or y == 1))) or
-                                 ((0 < x < 4 and y == 5) or ((x == 1 or x == 2) and (y == 2 or y == 0))) or
-                                 ((0 < x < 4 and y == 0) or ((x == 1 or x == 2) and (y == 2 or y == 4)))):
+                                (((x == 0 and 1 < y < 5 and y != 3) or (x == 3 and (y == 3 or y == 1))) or
+                                 (x == 4 and 0 < y < 5) or
+                                 (0 < x < 4 and y == 5) or
+                                 ((x == 3 and y == 0) or ((x == 1 or x == 2) and y == 4))):
                             T_matrix[x][y][j][x_tr][y_tr] = Pe / 4
-                        # probability of staying still in a corner while moving towards wall is 1 - Pe + Pe/2
+                        # probability of staying still in a corner/corrider while moving towards wall/obstacle is 1 - Pe + Pe/2
                         elif (x == x_tr and y == y_tr) and \
-                                ((x == 0 and y == 0 and (j == 1 or j == 4)) or
-                                 (x == 0 and y == 5 and (j == 1 or j == 3)) or
-                                 (x == 4 and y == 5 and (j == 2 or j == 3)) or
-                                 (x == 4 and y == 0 and (j == 2 or j == 4))):
+                                ((j == 1 and x == 0) or
+                                 (j == 2 and ((x == 0 and (y == 1 or y == 3)) or x == 4)) or
+                                 (j == 3 and (((x == 1 or x == 2) and (y == 0 or y == 2)) or y == 5)) or
+                                 (j == 4 and (((x == 1 or x == 2) and y == 2) or y == 0)))
                             T_matrix[x][y][j][x_tr][y_tr] = 1 - Pe / 2
                         # probability of staying still in a corner while moving away from wall is Pe - Pe/2
-                        elif (x == x_tr and y == y_tr) and \
-                                ((x == 0 and y == 0) or
-                                 (x == 0 and y == 5) or
-                                 (x == 4 and y == 5) or
-                                 (x == 4 and y == 0)):
+                        elif x == x_tr and y == y_tr and (x == 0 or x == 4 or  y == 5 or  y == 0):
                             T_matrix[x][y][j][x_tr][y_tr] = Pe / 2
                         # all other motions(pretty much teleportation) are impossible so remain zero
     return T_matrix
