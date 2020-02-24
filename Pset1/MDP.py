@@ -7,12 +7,15 @@ class StateSpace:
         self.H = H
         self.L = L
         self.space = []
+        it = 0
         for i in range(0,H):
-            for k in range(1,L+1):
-                spacetemp.append(k + (((H+1) * i)))
+            for k in range(0,L):
+                spacetemp.append(it)
+                it= it + 1
             self.space.append(spacetemp)
             spacetemp = []
         self.size = len(self.space) * len(self.space[0])
+        del(it)
 
 
     def index(self,s):
@@ -91,8 +94,18 @@ def transition_p(S,O,s,a,sp):
     else:
         print('uh oh')
 
+
+def initialPolicy(S,a):
+    policy = []
+    for i in range(0,S.size):
+        policy.append(a)
+    return policy
+
+
 R = [[2,2,1],[2,0,10],[4,0,-100],[4,1,-100],[4,2,-100],[4,3,-100],[4,4,-100],[4,5,-100]]
 O = [[1,1],[2,1],[1,3],[2,3]]
 S = StateSpace(6,5)
 print(isAdjacent([0,0],[1,0]))
 print(transition_p(S,O,[1,1],4,[0,1]))
+print(len(initialPolicy(S,1)))
+print(S.space)
