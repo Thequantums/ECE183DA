@@ -2,6 +2,7 @@ import numpy as np
 import sys
 import time
 
+
 # state class
 class S:
     def __init__(self, x, y):
@@ -98,7 +99,7 @@ def init_T(T_matrix, Pe):
                                 ((j == 1 and x == 0) or
                                  (j == 2 and ((x == 0 and (y == 1 or y == 3)) or x == 4)) or
                                  (j == 3 and (((x == 1 or x == 2) and (y == 0 or y == 2)) or y == 5)) or
-                                 (j == 4 and (((x == 1 or x == 2) and y == 2) or y == 0)))
+                                 (j == 4 and (((x == 1 or x == 2) and y == 2) or y == 0))):
                             T_matrix[x][y][j][x_tr][y_tr] = 1 - Pe / 2
                         # probability of staying still in a corner while moving away from wall is Pe - Pe/2
                         elif x == x_tr and y == y_tr and (x == 0 or x == 4 or  y == 5 or  y == 0):
@@ -440,6 +441,7 @@ def display_v_pi(v_pi):
             sys.stdout.write(buffer)
         sys.stdout.write("\n")
 
+
 def display_policy_ingridworld(pi):
     for y in range(sizeof_y):
         new_y = sizeof_y - y -1
@@ -459,6 +461,7 @@ def display_policy_ingridworld(pi):
             sys.stdout.write(buffer)
         sys.stdout.write("\n")
 
+
 def main():
     init_T(T_matrix, pe)
     init_R(reward)
@@ -476,6 +479,7 @@ def main():
     display_v_pi(opt_value)
     display_policy_ingridworld(opt_policy)
     print("CPU time for policy iteration is " + str((policy_iteration_time * pow(10,3))) + " ms")
+
 
 if __name__ == '__main__':
     main()
