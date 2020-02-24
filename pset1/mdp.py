@@ -319,8 +319,7 @@ def improve_pi(v):
 
 # Policy Iteration Algorithm (updated)
 def policy_iteration():
-    global policy_iteration_time
-    start = time.clock()
+    start = time.perf_counter()
     # Initialize policy to all lefts
     pi = np.zeros((sizeof_x, sizeof_y))
     pi = init_policy(pi)
@@ -339,7 +338,7 @@ def policy_iteration():
             break
         # Otherwise update the current policy and run next iteration
         pi = improved_pi
-    end = time.clock()
+    end = time.perf_counter()
     policy_iteration_time = end - start
     return pi, v_opt, policy_iteration_time
 
@@ -437,7 +436,11 @@ def policy_iteration():
 def display_v_pi(v_pi):
     for y in range(sizeof_y):
         for x in range(sizeof_x):
-            buffer = str(round(v_pi[x][sizeof_y - y - 1], 2)) + ", "
+            if (x == 1 or x == 2) and (y == 2 or y == 4):
+                buffer = "-----  "
+                sys.stdout.write(buffer)
+                continue
+            buffer = "%.2f" % v_pi[x][sizeof_y - y - 1] + ", "
             sys.stdout.write(buffer)
         sys.stdout.write("\n")
 
@@ -446,6 +449,10 @@ def display_policy_ingridworld(pi):
     for y in range(sizeof_y):
         new_y = sizeof_y - y -1
         for x in range(sizeof_x):
+            if (x == 1 or x == 2) and (new_y == 1 or new_y == 3):
+                buffer = "-----  "
+                sys.stdout.write(buffer)
+                continue
             if pi[x][new_y] == 0:
                 policy = 'stay '
             elif pi[x][new_y] == 1:
