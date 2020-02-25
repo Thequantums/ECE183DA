@@ -389,7 +389,7 @@ def main():
     policyT = findTrajectory(S(2,5),opt_policy)
     valueT = findTrajectory(S(2, 5), value_opt_policy)
     if (output_type == 'all'):
-        print('Display initial policy: ')
+        print('\nDisplay initial policy: ')
         display_policy_ingridworld(policy)
         print('\none-step improvement on initial policy: ')
         display_policy_ingridworld(one_step_opt_policy)

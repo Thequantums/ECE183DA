@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Original Run with gamma = .9 and pe =.01 and one-time initial outputs for initial questions \n"
+echo "Original Run with gamma = .9 and pe =.01 and one-time initial outputs for initial questions"
 python3 mdp.py --gamma=.9 --pe=.01 --output=all
 
 echo "###########################################################################\n"
