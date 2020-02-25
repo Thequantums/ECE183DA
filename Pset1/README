@@ -76,6 +76,12 @@ Problem 5 a. The same optimal policy was produced for both policy and value iter
              reward, save for cases where it was close to the negative reward zone. Policy iteration took approx 1/10 of 
              the time of the original, and value iteration took approximately 1/12.
              
+             These trends are expected because as gamma increases, you prioritize the reward near you since you only have a
+             small amount of time to obtain your final sum(long distances are so far that they aren't worth it). As pe
+             increases you become more wary of the street because you could easily stumble into it and pay a hefty penalty.
+             Also note that as gamma becomes smaller, our algorithms end quicker and that makes sense because a smaller gamma
+             causes values to converge quicker (.1^t htis zero faster than .9^t does)
+             
 INSTRUCTIONS/HELP     
 How to run the script to produce all results:
         Requirements: python version 3.3 and above, Bash shell script to run the script.
