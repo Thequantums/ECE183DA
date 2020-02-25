@@ -3,7 +3,7 @@ Readme for problem set one
 mdp.py: MDP solver, uses policy and value iteration. When run via command line, takes arguments pe for global error, gamma for discount factor,
         and output to determine verbosity of output ([opt] for only optimized results, and [all] for all results). 
 MDP_runner.sh: Runs MDP solver with varying values of pe and gamma, in order to identify how different values affect optimal policy generation
-
+result.txt: a text file contains all results from the script.
 
 Problem 0 a. This code was a collaboration between the members of team Ares (Sokchetra Eung, Victor Rios, Cooper Simpson)
           b. Resources included the class overleaf, stackexchange,
