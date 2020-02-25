@@ -286,8 +286,6 @@ def main():
         theta_side = theta - math.pi / 2  # Orientation of second laser is -90 degrees of car's orientation
         if theta_side < 0:  # Correct orientation for below 0 degrees and above 360 degrees
             theta_side = theta_side + math.pi * 2
-        elif theta_side >= math.pi * 2:
-            theta_side = theta_side - math.pi * 2
         d2 = the_d(theta_side) + np.random.normal(0, d2_var)  # Distance of side laser
         mx = M * math.sin(theta) + np.random.normal(0, mx_var) # Magnetometer along x-axis
         my = M * math.cos(theta) + np.random.normal(0, my_var) # Magnetometer along y-axis
