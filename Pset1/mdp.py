@@ -333,7 +333,7 @@ def display_v_pi(v_pi):
 def findTrajectory(initialState,policy): #Finds the trajectory and max sum of discounted rewards given a starting point and policy
     trajectory = [initialState]     #place initial value into trajectory array
     sum_of_rewards = 0
-    sumtemp = 1000
+    sumtemp = 0
     t = 0   #initialize values
     while(True):
         currentState = trajectory[-1]   #take current state from end of array
