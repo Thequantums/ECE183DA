@@ -5,25 +5,25 @@ python3 mdp.py --gamma=.9 --pe=.01 --output=all
 
 echo "###########################################################################\n"
 
-echo "Run with lower gamma = .5 and original pe =.01 \n"
+echo "Run with lower gamma = .5 and original pe =.01"
 python3 mdp.py --gamma=.5 --pe=.01 --output=opt
 
 echo "###########################################################################\n"
-echo "Run with lowest gamma = .01 and original pe =.01 \n"
+echo "Run with lowest gamma = .01 and original pe =.01"
 python3 mdp.py --gamma=.1 --pe=.01 --output=opt
 
 echo "###########################################################################\n"
-echo "Run with original = .9 and higher error pe =.1 \n"
+echo "Run with original = .9 and higher error pe =.1"
 python3 mdp.py --gamma=.9 --pe=.1 --output=opt
 
 echo "###########################################################################\n"
-echo "Run with original = .9 and even higher error pe =.5 \n"
+echo "Run with original = .9 and even higher error pe =.5"
 python3 mdp.py --gamma=.9 --pe=.5 --output=opt
 
 echo "###########################################################################\n"
-echo "Run with original = .9 and highest error pe =.9 \n"
+echo "Run with original = .9 and highest error pe =.9"
 python3 mdp.py --gamma=.9 --pe=.9 --output=opt
 
 echo "###########################################################################\n"
-echo "Run with lowest gamma = .1 and highest error pe =.9 \n"
+echo "Run with lowest gamma = .1 and highest error pe =.9"
 python3 mdp.py --gamma=.1 --pe=.9 --output=opt
