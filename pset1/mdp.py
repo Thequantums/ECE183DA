@@ -343,6 +343,10 @@ def policy_iteration():
     return pi, v_opt, policy_iteration_time
 
 
+def value_iteration():
+    return
+
+
 ## QUESTION: 3d
 # basically give best policy under one iteration using V_pi similar function to above
 # note we are discarding the possible optimal policy of staying still which Action = 0 (outdated)
@@ -437,10 +441,14 @@ def display_v_pi(v_pi):
     for y in range(sizeof_y):
         for x in range(sizeof_x):
             if (x == 1 or x == 2) and (y == 2 or y == 4):
-                buffer = "-----  "
+                buffer = " -----  "
                 sys.stdout.write(buffer)
                 continue
             buffer = "%.2f" % v_pi[x][sizeof_y - y - 1] + ", "
+            if v_pi[x][sizeof_y - y - 1] > 0:
+                buffer = " " + buffer
+            if abs(v_pi[x][sizeof_y - y - 1]) < 10:
+                buffer = " " + buffer
             sys.stdout.write(buffer)
         sys.stdout.write("\n")
 
@@ -475,16 +483,15 @@ def main():
     # the policy for all states
     policy = np.zeros((sizeof_x, sizeof_y))
     policy = init_policy(policy)  # going left
-    display_policy(policy)
+    display_policy_ingridworld(policy)
     v_pi = compute_v_pi(policy)
     display_v_pi(v_pi)
     # max_po = opt_policy_one_step(V_pi)
     # display_policy(max_po)
     # V_pi = np.zeros((sizeof_x,sizeof_y))
     opt_policy, opt_value, policy_iteration_time = policy_iteration()
-    display_policy(opt_policy)
-    display_v_pi(opt_value)
     display_policy_ingridworld(opt_policy)
+    display_v_pi(opt_value)
     print("CPU time for policy iteration is " + str((policy_iteration_time * pow(10,3))) + " ms")
 
 
