@@ -395,11 +395,11 @@ def main():
     print("\nPolicy iteration result: ")
     display_policy_ingridworld(opt_policy)
     print("CPU time for policy iteration is " + str((policy_iteration_time * pow(10, 3))) + " ms \n")
-    print("Optimal Path: ",str(listTrajectory(policyT[0])), '\n', 'Max sum of discounted rewards: ', str(policyT[1]))
+    print("Optimal Path: ",str(listTrajectory(policyT[0])), '\n', 'Sum of discounted rewards: ', str(policyT[1]))
     print("Value iteration result: ")
     display_policy_ingridworld(value_opt_policy)
     print("CPU time for value iteration is " + str((values_iteration_time * pow(10, 3))) + " ms \n")
-    print("Optimal Path: ",str(listTrajectory(valueT[0])), '\n', 'Max sum of discounted rewards: ', str(valueT[1]))
+    print("Optimal Path: ",str(listTrajectory(valueT[0])), '\n', 'Sum of discounted rewards: ', str(valueT[1]))
 
 
 if __name__ == '__main__':
