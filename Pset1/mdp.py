@@ -337,6 +337,8 @@ def findTrajectory(initialState,policy): #Finds the trajectory and max sum of di
     t = 0   #initialize values
     while(True):
         currentState = trajectory[-1]   #take current state from end of array
+        sumtemp = sum_of_rewards  # save sum of rewards for comparison
+        sum_of_rewards = sum_of_rewards + (pow(gamma, t) * R(currentState))  # calculate sum of rewards
         action = policy[currentState.x][currentState.y]     #determine action based on state and policy
         if action == 1:     #determine next state based on action
             currentState = S(currentState.x - 1 ,currentState.y)
@@ -348,8 +350,6 @@ def findTrajectory(initialState,policy): #Finds the trajectory and max sum of di
             currentState = S(currentState.x,currentState.y - 1)
         if(currentState != trajectory[-1]):
             trajectory.append(currentState)     #add current state to trajectory list
-        sumtemp = sum_of_rewards  # save sum of rewards for comparison
-        sum_of_rewards = sum_of_rewards + (pow(gamma, t) * R(currentState))  # calculate sum of rewards
         t = t + 1
         if action == 0 and abs(sumtemp-sum_of_rewards) < threshold: #check to see if staying stationary has had any relevance
             break
