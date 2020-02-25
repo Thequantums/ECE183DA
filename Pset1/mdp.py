@@ -340,6 +340,8 @@ def findTrajectory(initialState,policy): #Finds the trajectory and max sum of di
         sumtemp = sum_of_rewards  # save sum of rewards for comparison
         sum_of_rewards = sum_of_rewards + (pow(gamma, t) * R(currentState))  # calculate sum of rewards
         action = policy[currentState.x][currentState.y]     #determine action based on state and policy
+        sumtemp = sum_of_rewards  # save sum of rewards for comparison
+        sum_of_rewards = sum_of_rewards + (pow(gamma, t) * R(currentState))  # calculate sum of rewards
         if action == 1:     #determine next state based on action
             currentState = S(currentState.x - 1 ,currentState.y)
         elif action == 2:
@@ -383,7 +385,7 @@ def main():
     v_pi = compute_v_pi(policy)
     one_step_opt_policy = improve_pi(v_pi)
     opt_policy, opt_value, policy_iteration_time = policy_iteration()
-    value_opt_policy, opt_value, values_iteration_time = value_iteration()
+    value_opt_policy, value_opt_value, values_iteration_time = value_iteration()
     policyT = findTrajectory(S(2,5),opt_policy)
     valueT = findTrajectory(S(2, 5), value_opt_policy)
     if (output_type == 'all'):
@@ -393,14 +395,18 @@ def main():
         display_policy_ingridworld(one_step_opt_policy)
 
     #only display optimal results
-    print("\nPolicy iteration result: ")
+    print("\nPolicy iteration policy result: ")
     display_policy_ingridworld(opt_policy)
+    print("With V(s) function: ")
+    display_v_pi(opt_value)
     print("CPU time for policy iteration is " + str((policy_iteration_time * pow(10, 3))) + " ms \n")
-    print("Optimal Path: ",str(listTrajectory(policyT[0])), '\n', 'Sum of discounted rewards: ', str(policyT[1]))
-    print("Value iteration result: ")
+    print("Optimal Path: ",str(listTrajectory(policyT[0])), '\n', 'Sum of discounted rewards: ', str(policyT[1]), 'Expected Sum of Discounted Rewards: ', str(opt_value[2][5]))
+    print("Value iteration policy result: ")
     display_policy_ingridworld(value_opt_policy)
+    print("With V(s) function: ")
+    display_v_pi(value_opt_value)
     print("CPU time for value iteration is " + str((values_iteration_time * pow(10, 3))) + " ms \n")
-    print("Optimal Path: ",str(listTrajectory(valueT[0])), '\n', 'Sum of discounted rewards: ', str(valueT[1]))
+    print("Optimal Path: ",str(listTrajectory(valueT[0])), '\n', 'Sum of discounted rewards: ', str(valueT[1]), 'Expected Sum of Discounted Rewards: ', str(value_opt_value[2][5]))
 
 
 if __name__ == '__main__':
