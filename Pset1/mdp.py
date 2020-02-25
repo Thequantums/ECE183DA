@@ -330,6 +330,38 @@ def display_v_pi(v_pi):
         sys.stdout.write("\n")
 
 
+def findTrajectory(initialState,policy): #Finds the trajectory and max sum of discounted rewards given a starting point and policy
+    trajectory = [initialState]     #place initial value into trajectory array
+    sum_of_rewards = 0
+    sumtemp = 1000
+    t = 0   #initialize values
+    while(True):
+        currentState = trajectory[-1]   #take current state from end of array
+        action = policy[currentState.x][currentState.y]     #determine action based on state and policy
+        if action == 1:     #determine next state based on action
+            currentState = S(currentState.x - 1 ,currentState.y)
+        elif action == 2:
+            currentState = S(currentState.x + 1 ,currentState.y)
+        elif action == 3:
+            currentState = S(currentState.x ,currentState.y + 1)
+        elif action == 4:
+            currentState = S(currentState.x,currentState.y - 1)
+        sumtemp = sum_of_rewards    #save sum of rewards for comparison
+        sum_of_rewards = sum_of_rewards + (pow(gamma,t)*R(currentState))    #calculate sum of rewards
+        t = t+1
+        trajectory.append(currentState)     #add current state to trajectory list
+        if action == 0 and abs(sumtemp-sum_of_rewards) > threshold: #check to see if staying stationary has had any relevance
+            break
+    return [trajectory,sum_of_rewards]
+
+
+def listTrajectory(traj):   #Returns a list of coordinate pairs given a list of states
+    listform = []
+    for s in traj:
+        listform.append([s.x,s.y])
+    return listform
+
+
 # Main Function
 def main():
     paser = argparse.ArgumentParser()
@@ -351,6 +383,8 @@ def main():
     one_step_opt_policy = improve_pi(v_pi)
     opt_policy, opt_value, policy_iteration_time = policy_iteration()
     value_opt_policy, opt_value, values_iteration_time = value_iteration()
+    policyT = findTrajectory(S(2,5),opt_policy)
+    valueT = findTrajectory(S(2, 5), value_opt_policy)
     if (output_type == 'all'):
         print('Display initial policy: ')
         display_policy_ingridworld(policy)
@@ -361,9 +395,12 @@ def main():
     print("\nPolicy iteration result: ")
     display_policy_ingridworld(opt_policy)
     print("CPU time for policy iteration is " + str((policy_iteration_time * pow(10, 3))) + " ms \n")
+    print("Optimal Path: ",str(listTrajectory(policyT[0])), '\n', 'Max sum of discounted rewards: ', str(policyT[1]))
     print("Value iteration result: ")
     display_policy_ingridworld(value_opt_policy)
     print("CPU time for value iteration is " + str((values_iteration_time * pow(10, 3))) + " ms \n")
+    print("Optimal Path: ",str(listTrajectory(valueT[0])), '\n', 'Max sum of discounted rewards: ', str(valueT[1]))
+
 
 if __name__ == '__main__':
     main()
