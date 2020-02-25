@@ -1,0 +1,161 @@
+Original Run with gamma = .9 and pe =.01 and one-time initial outputs for initial questions \n
+Display initial policy: 
+left   left   left   left   left   
+left   left   left   left   left   
+left   -----  -----  left   left   
+left   left   left   left   left   
+left   -----  -----  left   left   
+left   left   left   left   left   
+
+one-step improvement on initial policy: 
+down   stay   stay   stay   left   
+down   stay   stay   stay   left   
+down   -----  -----  down   left   
+right  right  stay   left   left   
+down   -----  -----  down   left   
+right  right  stay   left   left   
+
+Policy iteration result: 
+down   down   down   down   left   
+down   left   right  down   left   
+down   -----  -----  down   left   
+down   right  right  down   left   
+down   -----  -----  down   left   
+right  right  stay   left   left   
+CPU time for policy iteration is 3294.3523610010743 ms 
+
+Value iteration result: 
+down   down   down   down   left   
+down   left   right  down   left   
+down   -----  -----  down   left   
+down   right  right  down   left   
+down   -----  -----  down   left   
+right  right  stay   left   left   
+CPU time for value iteration is 3668.6775449925335 ms 
+
+###########################################################################\n
+Run with lower gamma = .5 and original pe =.01 \n
+
+Policy iteration result: 
+down   down   down   down   left   
+down   left   right  down   left   
+down   -----  -----  down   left   
+down   right  right  down   left   
+down   -----  -----  down   left   
+right  right  stay   left   left   
+CPU time for policy iteration is 629.7834879951552 ms 
+
+Value iteration result: 
+down   down   down   down   left   
+down   left   right  down   left   
+down   -----  -----  down   left   
+down   right  right  down   left   
+down   -----  -----  down   left   
+right  right  stay   left   left   
+CPU time for value iteration is 596.3404610083671 ms 
+
+###########################################################################\n
+Run with lowest gamma = .01 and original pe =.01 \n
+
+Policy iteration result: 
+down   left   stay   stay   left   
+down   left   left   stay   left   
+down   -----  -----  stay   left   
+right  right  stay   left   left   
+down   -----  -----  down   left   
+right  right  stay   left   left   
+CPU time for policy iteration is 231.72668399638496 ms 
+
+Value iteration result: 
+down   left   stay   stay   left   
+down   left   left   stay   left   
+down   -----  -----  stay   left   
+right  right  stay   left   left   
+down   -----  -----  down   left   
+right  right  stay   left   left   
+CPU time for value iteration is 215.78390699869487 ms 
+
+###########################################################################\n
+Run with original = .9 and higher error pe =.1 \n
+
+Policy iteration result: 
+down   left   down   down   left   
+down   left   right  down   left   
+down   -----  -----  down   left   
+down   left   right  down   left   
+down   -----  -----  down   left   
+right  right  stay   left   left   
+CPU time for policy iteration is 4695.990339008858 ms 
+
+Value iteration result: 
+down   left   down   down   left   
+down   left   right  down   left   
+down   -----  -----  down   left   
+down   left   right  down   left   
+down   -----  -----  down   left   
+right  right  stay   left   left   
+CPU time for value iteration is 3672.055001996341 ms 
+
+###########################################################################\n
+Run with original = .9 and even higher error pe =.5 \n
+
+Policy iteration result: 
+down   left   left   stay   left   
+down   left   left   stay   left   
+down   -----  -----  stay   left   
+down   left   left   stay   left   
+down   -----  -----  down   left   
+right  right  stay   left   left   
+CPU time for policy iteration is 3279.989955990459 ms 
+
+Value iteration result: 
+down   left   left   stay   left   
+down   left   left   stay   left   
+down   -----  -----  stay   left   
+down   left   left   stay   left   
+down   -----  -----  down   left   
+right  right  stay   left   left   
+CPU time for value iteration is 3692.6888449961552 ms 
+
+###########################################################################\n
+Run with original = .9 and highest error pe =.9 \n
+
+Policy iteration result: 
+down   left   left   stay   left   
+down   left   left   stay   left   
+down   -----  -----  stay   left   
+down   up     stay   stay   left   
+down   -----  -----  stay   left   
+right  right  stay   stay   left   
+CPU time for policy iteration is 6288.691584006301 ms 
+
+Value iteration result: 
+down   left   left   stay   left   
+down   left   left   stay   left   
+down   -----  -----  stay   left   
+down   up     stay   stay   left   
+down   -----  -----  stay   left   
+right  right  stay   stay   left   
+CPU time for value iteration is 3672.9871869902126 ms 
+
+###########################################################################\n
+Run with lowest gamma = .1 and highest error pe =.9 \n
+
+Policy iteration result: 
+down   left   stay   stay   left   
+down   left   left   stay   left   
+down   -----  -----  stay   left   
+right  right  stay   stay   left   
+down   -----  -----  stay   left   
+right  right  stay   stay   left   
+CPU time for policy iteration is 306.1735120136291 ms 
+
+Value iteration result: 
+down   left   stay   stay   left   
+down   left   left   stay   left   
+down   -----  -----  stay   left   
+right  right  stay   stay   left   
+down   -----  -----  stay   left   
+right  right  stay   stay   left   
+CPU time for value iteration is 216.53499000240117 ms 
+
