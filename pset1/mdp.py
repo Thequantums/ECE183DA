@@ -334,7 +334,7 @@ def policy_iteration():
         # Improvement Step (Improve policy under greedy one step lookahead using V under current policy)
         improved_pi = improve_pi(v_opt)
         # If policy did not change then optimal policy found
-        if (np.array_equal(improved_pi,pi)):
+        if np.array_equal(improved_pi, pi):
             break
         # Otherwise update the current policy and run next iteration
         pi = improved_pi
@@ -344,7 +344,25 @@ def policy_iteration():
 
 
 def value_iteration():
-    return
+    start = time.perf_counter()
+    v_opt = np.zeros((sizeof_x, sizeof_y))
+    pi_opt = np.zeros((sizeof_x, sizeof_y))
+
+    while 1:
+        v_new = np.zeros((sizeof_x, sizeof_y))
+        for i in range(sizeof_state):
+            action_values = np.zeros(sizeof_action)
+            for policy in range(sizeof_action):
+                for j in range(sizeof_state):
+                    action_values[policy] += T(all_state[i], policy, all_state[j])*(R(all_state[i])+gamma*v_opt[all_state[j].x][all_state[j].y])
+            v_new[all_state[i].x][all_state[i].y] = np.max(action_values)
+        if convergence_test_v(v_opt, v_new):
+            break
+        v_opt = v_new
+    extracted_pi = improve_pi(v_opt)
+    end = time.perf_counter()
+    value_iteration_time = end - start
+    return extracted_pi, v_opt, value_iteration_time
 
 
 ## QUESTION: 3d
@@ -492,7 +510,11 @@ def main():
     opt_policy, opt_value, policy_iteration_time = policy_iteration()
     display_policy_ingridworld(opt_policy)
     display_v_pi(opt_value)
-    print("CPU time for policy iteration is " + str((policy_iteration_time * pow(10,3))) + " ms")
+    print("CPU time for policy iteration is " + str((policy_iteration_time * pow(10, 3))) + " ms")
+    opt_policy, opt_value, policy_iteration_time = value_iteration()
+    display_policy_ingridworld(opt_policy)
+    display_v_pi(opt_value)
+    print("CPU time for value iteration is " + str((policy_iteration_time * pow(10,3))) + " ms")
 
 
 if __name__ == '__main__':
