@@ -346,13 +346,14 @@ def findTrajectory(initialState,policy): #Finds the trajectory and max sum of di
             currentState = S(currentState.x ,currentState.y + 1)
         elif action == 4:
             currentState = S(currentState.x,currentState.y - 1)
-        sumtemp = sum_of_rewards    #save sum of rewards for comparison
-        sum_of_rewards = sum_of_rewards + (pow(gamma,t)*R(currentState))    #calculate sum of rewards
-        t = t+1
-        trajectory.append(currentState)     #add current state to trajectory list
-        if action == 0 and abs(sumtemp-sum_of_rewards) > threshold: #check to see if staying stationary has had any relevance
+        if(currentState != trajectory[-1]):
+            trajectory.append(currentState)     #add current state to trajectory list
+        sumtemp = sum_of_rewards  # save sum of rewards for comparison
+        sum_of_rewards = sum_of_rewards + (pow(gamma, t) * R(currentState))  # calculate sum of rewards
+        t = t + 1
+        if action == 0 and abs(sumtemp-sum_of_rewards) < threshold: #check to see if staying stationary has had any relevance
             break
-    return [trajectory,sum_of_rewards]
+    return [trajectory,round(sum_of_rewards,2)]
 
 
 def listTrajectory(traj):   #Returns a list of coordinate pairs given a list of states
