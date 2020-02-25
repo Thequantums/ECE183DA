@@ -10,6 +10,7 @@ class S:
         self.y = y
 
 
+# QUESTION: 1B
 # Action class, there are 5 actions the robot can take
 class A:
     stay = 0
@@ -39,6 +40,7 @@ reward = np.zeros((sizeof_x, sizeof_y))
 # This variable helps us traverse through all state with index i from 0 to 29. instead of traversing by x and y
 # all the time. Very important Note:(0,0) is state 0, (1,0) is state 1, (0, 1) is state 5 and so on till (4,5) is
 # state 29. helpful for indexing in algorithm.
+# QUESTION: 1A
 all_state = []
 for y in range(sizeof_y):
     for x in range(sizeof_x):
