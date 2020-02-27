@@ -14,7 +14,7 @@ class rrt():
         self.obstacles = obstacles  # obstacle list. Rectangles only, in form xmin, ymin, xmax, ymax
         self.goal = goal  # goal. Rectangles only, in form xmin, ymin, xmax, ymax
         self.nodesList = [origin]  # list of all nodes
-
+        self.robotRadius = 5    #Radius of the circular robot estimate
     def finddist(self,node1, node2):  # returns the euclidian distance between two nodes
         dist = math.sqrt(pow(node1[0] - node2[0], 2) + pow(node1[1] - node2[1], 2))
         return dist
@@ -26,8 +26,8 @@ class rrt():
 
     def obsCheck(self, point, obstacles):  # checks if the point is inside an obstacle. if it is, returns the origin. ##FUTURE## return the closest allowed point
         for o in obstacles:
-            if ((o[0] < point[0] < o[2]) and (o[1] < point[1] < o[3])):
-                return [self.origin[0], self.origin[1]]
+            if (((o[0] < point[0] + self.robotRadius < o[2]) or (o[0] < point[0] - self.robotRadius < o[2])) and ((o[1] < point[1] + self.robotRadius < o[3]) or (o[1] < point[1] - self.robotRadius < o[3]))):
+                return self.origin
         return point
 
     def takestep(self, startnode, targetnode, nodes):  # finds a point one unit step from startnode, in the direction of targetnode. Takes "node" in order to set new node's parent node in node[2]
@@ -72,6 +72,17 @@ class rrt():
         plt.xlim(0, self.maxcoords[0])
         plt.ylim(0, self.maxcoords[1])
 
+
+    def drawparentlines(self, nodelist):
+        for node in nodelist:
+            if(node == nodelist[node[2]]):
+                pass
+            else:
+                jumplist = [node, nodelist[node[2]]]
+                plt.plot([jumplist[0][0],jumplist[1][0]],[jumplist[0][1],jumplist[1][1]],'b')
+
+
+
     def optimize(self):
         pass
         # dumb stuff
@@ -93,8 +104,9 @@ class rrt():
             if verbose == True:
                 print(k)
 
-        x, y = list(zip(*self.nodesList))
+        x, y, z = list(zip(*self.nodesList))
         if plotting == True:
+            self.drawparentlines(self.nodesList)
             if goalbool:
                 plt.plot(xg, yg, 'y')
             plt.scatter(x, y, s=1)
