@@ -1,5 +1,7 @@
 import math
 import random
+import sys
+
 import matplotlib.pyplot as plt
 import numpy as np
 class rrt():
@@ -33,11 +35,62 @@ class rrt():
             for o in obstacles:
                 if (((o[0] < point[0] + self.robotRadius < o[2]) or (o[0] < point[0] - self.robotRadius < o[2])) and (
                         (o[1] < point[1] + self.robotRadius < o[3]) or (o[1] < point[1] - self.robotRadius < o[3]))):
-                    return self.origin
+                    return True
         elif self.obstacletype == 'array':
-            if(obstacles[math.floor(point[0])-1][math.floor(point[1])-1] or obstacles[math.floor(point[0])-1][math.ceil(point[1])-1] or obstacles[math.ceil(point[0])-1][math.floor(point[1])-1] or obstacles[math.ceil(point[0])-1][math.ceil(point[1])-1]):
-                return self.origin
-        return point
+            xflr = math.floor(point[0]) - 1
+            yflr = math.floor(point[1]) - 1
+            xcl = math.ceil(point[0]) - 1
+            ycl = math.ceil(point[1]) - 1
+            xmax = obstacles.shape[0]-1
+            ymax = obstacles.shape[1]-1
+
+            if xflr >= xmax or xcl >= xmax:
+                xflr = xcl = xmax
+            if yflr >= ymax or ycl >= ymax:
+                yflr = ycl = ymax
+
+            if(obstacles[xflr][yflr] or obstacles[xflr][ycl] or obstacles[xcl][yflr] or obstacles[xcl][ycl]):
+                return True
+        return False
+
+
+    def pathClear(self, startnode, endnode, obs):
+        deadzone = 10
+        if self.obsCheck(endnode,obs):
+            return True
+        diffx = (endnode[0] - startnode[0])
+        diffy = (endnode[1] - startnode[1])
+        if diffx > 0 + deadzone:
+            stepx = 1
+        elif diffx < 0 - deadzone:
+            stepx = -1
+        else:
+            stepx = 0
+
+        if diffy > 0 + deadzone:
+            stepy = 1
+        elif diffy < 0 - deadzone:
+            stepy = -1
+        else:
+            stepy = 0
+
+
+        ##############################################################
+        #TEMP SCALE SOLUTION
+        #################################################################
+        scale = 1
+        if stepx == 0:
+            return True
+
+        if stepy == 0:
+            return True
+
+        for x in range(round(startnode[0]*scale),round((startnode[0] + diffx)*scale), stepx):
+            for y in range(round(startnode[1]*scale),round((startnode[1] + diffy)*scale), stepy):
+                #print(y)
+                if self.obsCheck([x/scale,y/scale],obs):
+                    return True
+        return False
 
 
     def takestep(self, startnode, targetnode, nodes):  # finds a point one unit step from startnode, in the direction of targetnode. Takes "node" in order to set new node's parent node in node[2]
@@ -45,16 +98,22 @@ class rrt():
         if dist != 0:
             newx = ((targetnode[0] - startnode[0]) / dist) * self.stepsize
             newy = ((targetnode[1] - startnode[1]) / dist) * self.stepsize
-            checkednode = self.obsCheck([newx + startnode[0], newy + startnode[1], nodes.index(startnode)], self.obstacles)
+            newnode = [newx + startnode[0], newy + startnode[1], nodes.index(startnode)]
+            if self.pathClear(startnode, newnode, self.obstacles):
+                checkednode = startnode
+            else:
+                checkednode = newnode
         else:
             checkednode = startnode
         return checkednode
+
 
     def findclosest(self,nodes, newnode):  # finds the closest node to newnode in nodelist nodes
         distances = []
         for i in nodes:
             distances.append(self.finddist(i, newnode))
         return nodes[distances.index(min(distances))]
+
 
     def checkgoal(self,nodelist, node, goal):  # checks if the point is within the goal. if not, it sets goalfound to false. if it is, it returns the node path it took and sets goalfound to false
         goalpath = []

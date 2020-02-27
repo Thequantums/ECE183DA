@@ -1,32 +1,42 @@
 ##anku255
+from tkinter import Image
 
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
+from scipy import misc
+
 class imgToObs():
 
 
     def __init__(self,imagepath = "/Users/bobbe/PycharmProjects/ECE183DA/lab3/testmaze.png"):
         self.image = cv2.imread(imagepath)
-        plt.imshow(self.image)
 
     def showimage(self):
-        cv2.imshow('Original', image)
+        plt.imshow( self.image)
+        plt.show()
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
 
-    def obsfind(self):
+    def obsfind(self,scale):
+        #Grayscale the image and convert to a boolean array (true for obstacle, false for free space)
+        gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
+        imagearray = np.transpose(np.array(gray))
+        imagearray = imagearray < 255
 
-        sigma = 0.33
-        v = np.median(self.image)
-        low = int(max(0, (1.0 - sigma) * v))
-        high = int(min(255, (1.0 + sigma) * v))
-
-        edged = cv2.Canny(self.image, low, high)
-        imagearray = np.transpose(np.array(edged))
-        imagearray = imagearray != 0
-        print(imagearray)
-        return imagearray
+        #Scale up array via duplication
+        biggerimagearray = []
+        biggerimgarrayline = []
+        for line in imagearray.tolist():
+            for p in line:
+                for i in range(0,scale):
+                    biggerimgarrayline.append(p)
+            for i in range(0, scale):
+                biggerimagearray.append(biggerimgarrayline)
+            biggerimgarrayline = []
+        #return Larger true/false array
+        array = np.array(biggerimagearray)
+        return array
 
 
