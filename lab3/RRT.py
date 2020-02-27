@@ -8,7 +8,7 @@ class rrt():
 
 
     def __init__(self, origin = [250, 0, 0], maxcoords = [500,500], stepsize = 5, N = 10000, obstacles = [[0, 0, 100, 500], [400, 0, 500, 500], [200, 300, 400, 325],
-                     [100, 350, 250, 375]], goal = [140, 400, 150, 410], obstacletype = 'vertex', live = False):
+                     [100, 350, 250, 375]], goal = [140, 400, 150, 410], obstacletype = 'vertex', live = False, divis = 1):
         self.origin = origin  # Origin point, in form x,y,parent
         self.maxcoords = maxcoords  # Max values of field. x,y form. Assumes bottom left is 0,0
         self.stepsize = stepsize  # size of step to take (1=> unit vector step)
@@ -17,9 +17,10 @@ class rrt():
         self.goal = goal  # goal. Rectangles only, in form xmin, ymin, xmax, ymax
         self.nodesList = [origin]  # list of all nodes
         self.robotRadius = 5    #Radius of the circular robot estimate
-        self.obstacletype = obstacletype
-        self.live = live
-        if self.live:
+        self.obstacletype = obstacletype    #Whether we're using the vertex obstacle type (manual entry) or the array type (import from obstacleFinder)
+        self.live = live    #Whether we're using the "live" plotter or the end-time plotter
+        self.divis = divis #draw every divis changes
+        if self.live:   #Turns on interactive plotting if in live mode
             plt.ion()
 
 
@@ -27,8 +28,7 @@ class rrt():
         dist = math.sqrt(pow(node1[0] - node2[0], 2) + pow(node1[1] - node2[1], 2))
         return dist
 
-    def randomPoint(self):  # generates a random point
-        global maxcoords
+    def randomPoint(self):  # generates a random point. Uses a larger space than the actual Configuration space in order to increase steps towards the outside of the space
         point = [random.uniform(-100, self.maxcoords[0]+100), random.uniform(-100, self.maxcoords[1]+100)]
         return point
 
@@ -39,7 +39,7 @@ class rrt():
                 if (((o[0] < point[0] + self.robotRadius < o[2]) or (o[0] < point[0] - self.robotRadius < o[2])) and (
                         (o[1] < point[1] + self.robotRadius < o[3]) or (o[1] < point[1] - self.robotRadius < o[3]))):
                     return True
-        elif self.obstacletype == 'array':
+        elif self.obstacletype == 'array':  #array type obstacles not currently using robot radius
             xflr = math.floor(point[0]) - 1
             yflr = math.floor(point[1]) - 1
             xcl = math.ceil(point[0]) - 1
@@ -47,23 +47,23 @@ class rrt():
             xmax = obstacles.shape[0]-1
             ymax = obstacles.shape[1]-1
 
-            if xflr >= xmax or xcl >= xmax:
+            if xflr >= xmax or xcl >= xmax: #make sure bounds are not violated
                 xflr = xcl = xmax
             if yflr >= ymax or ycl >= ymax:
                 yflr = ycl = ymax
 
-            if(obstacles[xflr][yflr] or obstacles[xflr][ycl] or obstacles[xcl][yflr] or obstacles[xcl][ycl]):
+            if(obstacles[xflr][yflr] or obstacles[xflr][ycl] or obstacles[xcl][yflr] or obstacles[xcl][ycl]): #if the rounded location (via any rounding scheme) is a wall (True in the obstacle array), say so
                 return True
         return False
 
 
-    def pathClear(self, startnode, endnode, obs):
-        deadzone = self.stepsize/100
-        if self.obsCheck(endnode,obs):
+    def pathClear(self, startnode, endnode, obs):   #determines if a path is clear using obsCheck. Does this by canvassing a rectangle with the two input points in opposite corners.
+        deadzone = self.stepsize/100    #deadzone because axis perpindicular paths break everything for some reason
+        if self.obsCheck(endnode,obs):  #Don't bother if the endpoint is not allowed
             return True
         diffx = (endnode[0] - startnode[0])
         diffy = (endnode[1] - startnode[1])
-        if diffx > 0 + deadzone:
+        if diffx > 0 + deadzone:        #This is in order to use range, which won't decrement unless it has a negative step
             stepx = 1
         elif diffx < 0 - deadzone:
             stepx = -1
@@ -140,9 +140,9 @@ class rrt():
         plt.ylim(0, self.maxcoords[1])
 
 
-    def drawparentlines(self, nodelist):
-        filterlist =[self.origin]
-        for n in nodelist:
+    def drawparentlines(self, nodelist):    #draws connecting lines between parent and child nodes
+        filterlist = [self.origin]
+        for n in nodelist:  #Filters out repeated points for speed of drawing
             if n[2] == 0:
                 pass
             else:
@@ -153,46 +153,44 @@ class rrt():
             else:
                 jumplist = [node, nodelist[node[2]]]
                 plt.plot([jumplist[0][0],jumplist[1][0]],[jumplist[0][1],jumplist[1][1]],'b')
-                if self.live:
+                if self.live and filterlist.index(node) % self.divis == 0:   #Draw these consecutively if in live mode
                     plt.draw()
                     plt.pause(0.0001)
 
 
-    def optimize(self):
+    def optimize(self): #method reserved if we can get RRT* to function
         pass
         # dumb stuff
 
-    def rrt(self, verbose = False, plotting = False):
+    def rrt(self, verbose = False, plotting = False):   #Main implementation of RRT
         xg=[]
         yg=[]
         self.initplot(self.goal, self.obstacles)
-        for k in range(0, self.N):
+        for k in range(0, self.N):      #create (or attempt to create) N nodes
             xrand = self.randomPoint()
             xnear = self.findclosest(self.nodesList, xrand)
             xnew = self.takestep(xnear, xrand, self.nodesList)
             [goalbool, goalpath] = self.checkgoal(self.nodesList, xnew, self.goal)
             if (goalbool):
                 [xg, yg, zg] = list(zip(*goalpath))
-                if verbose == True:
+                if verbose == True: #debug info, only dump if verbose
                     print('PATH FOUND')
                 break
             else:
                 self.nodesList.append(xnew)
-            if verbose == True:
+            if verbose == True: #debug info, only dump if verbose
                 print(k)
-        # x, y, z = list(zip(*self.nodesList))
         if plotting == True:
             self.drawparentlines(self.nodesList)
             if goalbool:
                 plt.plot(xg, yg, 'y')
-                # plt.scatter(x, y, s=1)
-            if self.live:
+            if self.live:   #If live, draw the goal to the live graph
                 plt.draw()
                 plt.pause(0.01)
                 plt.ioff()
             plt.show()
 
-        return [xg, yg]
+        return [xg, yg] #return the trajectory to the goal
 
 
 
