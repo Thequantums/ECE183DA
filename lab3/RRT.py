@@ -8,7 +8,7 @@ class rrt():
 
 
     def __init__(self, origin = [250, 0, 0], maxcoords = [500,500], stepsize = 5, N = 10000, obstacles = [[0, 0, 100, 500], [400, 0, 500, 500], [200, 300, 400, 325],
-                     [100, 350, 250, 375]], goal = [140, 400, 150, 410], obstacletype = 'vertex'):
+                     [100, 350, 250, 375]], goal = [140, 400, 150, 410], obstacletype = 'vertex', live = False):
         self.origin = origin  # Origin point, in form x,y,parent
         self.maxcoords = maxcoords  # Max values of field. x,y form. Assumes bottom left is 0,0
         self.stepsize = stepsize  # size of step to take (1=> unit vector step)
@@ -18,6 +18,9 @@ class rrt():
         self.nodesList = [origin]  # list of all nodes
         self.robotRadius = 5    #Radius of the circular robot estimate
         self.obstacletype = obstacletype
+        self.live = live
+        if self.live:
+            plt.ion()
 
 
     def finddist(self,node1, node2):  # returns the euclidian distance between two nodes
@@ -26,7 +29,7 @@ class rrt():
 
     def randomPoint(self):  # generates a random point
         global maxcoords
-        point = [random.uniform(0, self.maxcoords[0]), random.uniform(0, self.maxcoords[1])]
+        point = [random.uniform(-100, self.maxcoords[0]+100), random.uniform(-100, self.maxcoords[1]+100)]
         return point
 
 
@@ -55,7 +58,7 @@ class rrt():
 
 
     def pathClear(self, startnode, endnode, obs):
-        deadzone = 10
+        deadzone = self.stepsize/100
         if self.obsCheck(endnode,obs):
             return True
         diffx = (endnode[0] - startnode[0])
@@ -74,21 +77,15 @@ class rrt():
         else:
             stepy = 0
 
-
-        ##############################################################
-        #TEMP SCALE SOLUTION
-        #################################################################
-        scale = 1
         if stepx == 0:
             return True
 
         if stepy == 0:
             return True
 
-        for x in range(round(startnode[0]*scale),round((startnode[0] + diffx)*scale), stepx):
-            for y in range(round(startnode[1]*scale),round((startnode[1] + diffy)*scale), stepy):
-                #print(y)
-                if self.obsCheck([x/scale,y/scale],obs):
+        for x in range(round(startnode[0]),round((startnode[0] + diffx)), stepx):
+            for y in range(round(startnode[1]),round((startnode[1] + diffy)), stepy):
+                if self.obsCheck([x,y],obs):
                     return True
         return False
 
@@ -100,11 +97,11 @@ class rrt():
             newy = ((targetnode[1] - startnode[1]) / dist) * self.stepsize
             newnode = [newx + startnode[0], newy + startnode[1], nodes.index(startnode)]
             if self.pathClear(startnode, newnode, self.obstacles):
-                checkednode = startnode
+                checkednode = self.origin
             else:
                 checkednode = newnode
         else:
-            checkednode = startnode
+            checkednode = self.origin
         return checkednode
 
 
@@ -144,13 +141,21 @@ class rrt():
 
 
     def drawparentlines(self, nodelist):
-        for node in nodelist:
+        filterlist =[self.origin]
+        for n in nodelist:
+            if n[2] == 0:
+                pass
+            else:
+                filterlist.append(n)
+        for node in filterlist:
             if(node == nodelist[node[2]]):
                 pass
             else:
                 jumplist = [node, nodelist[node[2]]]
                 plt.plot([jumplist[0][0],jumplist[1][0]],[jumplist[0][1],jumplist[1][1]],'b')
-
+                if self.live:
+                    plt.draw()
+                    plt.pause(0.0001)
 
 
     def optimize(self):
@@ -158,6 +163,8 @@ class rrt():
         # dumb stuff
 
     def rrt(self, verbose = False, plotting = False):
+        xg=[]
+        yg=[]
         self.initplot(self.goal, self.obstacles)
         for k in range(0, self.N):
             xrand = self.randomPoint()
@@ -173,14 +180,18 @@ class rrt():
                 self.nodesList.append(xnew)
             if verbose == True:
                 print(k)
-        print(self.nodesList)
-        x, y, z = list(zip(*self.nodesList))
+        # x, y, z = list(zip(*self.nodesList))
         if plotting == True:
             self.drawparentlines(self.nodesList)
             if goalbool:
                 plt.plot(xg, yg, 'y')
-            plt.scatter(x, y, s=1)
+                # plt.scatter(x, y, s=1)
+            if self.live:
+                plt.draw()
+                plt.pause(0.01)
+                plt.ioff()
             plt.show()
+
         return [xg, yg]
 
 
