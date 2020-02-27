@@ -35,7 +35,7 @@ class rrt():
                         (o[1] < point[1] + self.robotRadius < o[3]) or (o[1] < point[1] - self.robotRadius < o[3]))):
                     return self.origin
         elif self.obstacletype == 'array':
-            if(obstacles[round(point[0])-1][round(point[1])-1]):
+            if(obstacles[math.floor(point[0])-1][math.floor(point[1])-1] or obstacles[math.floor(point[0])-1][math.ceil(point[1])-1] or obstacles[math.ceil(point[0])-1][math.floor(point[1])-1] or obstacles[math.ceil(point[0])-1][math.ceil(point[1])-1]):
                 return self.origin
         return point
 
