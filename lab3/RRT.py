@@ -6,7 +6,7 @@ class rrt():
 
 
     def __init__(self, origin = [250, 0, 0], maxcoords = [500,500], stepsize = 5, N = 10000, obstacles = [[0, 0, 100, 500], [400, 0, 500, 500], [200, 300, 400, 325],
-                     [100, 350, 250, 375]], goal = [140, 400, 150, 410]):
+                     [100, 350, 250, 375]], goal = [140, 400, 150, 410], obstacletype = 'vertex'):
         self.origin = origin  # Origin point, in form x,y,parent
         self.maxcoords = maxcoords  # Max values of field. x,y form. Assumes bottom left is 0,0
         self.stepsize = stepsize  # size of step to take (1=> unit vector step)
@@ -15,24 +15,34 @@ class rrt():
         self.goal = goal  # goal. Rectangles only, in form xmin, ymin, xmax, ymax
         self.nodesList = [origin]  # list of all nodes
         self.robotRadius = 5    #Radius of the circular robot estimate
+        self.obstacletype = obstacletype
+
+
     def finddist(self,node1, node2):  # returns the euclidian distance between two nodes
         dist = math.sqrt(pow(node1[0] - node2[0], 2) + pow(node1[1] - node2[1], 2))
         return dist
 
     def randomPoint(self):  # generates a random point
         global maxcoords
-        point = [random.randint(0, self.maxcoords[0]), random.randint(0, self.maxcoords[1])]
+        point = [random.uniform(0, self.maxcoords[0]), random.uniform(0, self.maxcoords[1])]
         return point
 
+
     def obsCheck(self, point, obstacles):  # checks if the point is inside an obstacle. if it is, returns the origin. ##FUTURE## return the closest allowed point
-        for o in obstacles:
-            if (((o[0] < point[0] + self.robotRadius < o[2]) or (o[0] < point[0] - self.robotRadius < o[2])) and ((o[1] < point[1] + self.robotRadius < o[3]) or (o[1] < point[1] - self.robotRadius < o[3]))):
+        if self.obstacletype == 'vertex':
+            for o in obstacles:
+                if (((o[0] < point[0] + self.robotRadius < o[2]) or (o[0] < point[0] - self.robotRadius < o[2])) and (
+                        (o[1] < point[1] + self.robotRadius < o[3]) or (o[1] < point[1] - self.robotRadius < o[3]))):
+                    return self.origin
+        elif self.obstacletype == 'array':
+            if(obstacles[round(point[0])-1][round(point[1])-1]):
                 return self.origin
         return point
 
+
     def takestep(self, startnode, targetnode, nodes):  # finds a point one unit step from startnode, in the direction of targetnode. Takes "node" in order to set new node's parent node in node[2]
-        if startnode != targetnode:
-            dist = self.finddist(startnode, targetnode)
+        dist = self.finddist(startnode, targetnode)
+        if dist != 0:
             newx = ((targetnode[0] - startnode[0]) / dist) * self.stepsize
             newy = ((targetnode[1] - startnode[1]) / dist) * self.stepsize
             checkednode = self.obsCheck([newx + startnode[0], newy + startnode[1], nodes.index(startnode)], self.obstacles)
@@ -65,9 +75,10 @@ class rrt():
 
     def initplot(self, goal, obstacles):  # initializes plot by drawing obstacles, goal, and origin as well as setting the axes
         goalbox = [[goal[0], goal[2], goal[2], goal[0], goal[0]], [goal[1], goal[1], goal[3], goal[3], goal[1]]]
-        for o in obstacles:
-            obsbox = [[o[0], o[2], o[2], o[0], o[0]], [o[1], o[1], o[3], o[3], o[1]]]
-            plt.plot(obsbox[0], obsbox[1], 'r')
+        if self.obstacletype == 'vertex':
+            for o in obstacles:
+                obsbox = [[o[0], o[2], o[2], o[0], o[0]], [o[1], o[1], o[3], o[3], o[1]]]
+                plt.plot(obsbox[0], obsbox[1], 'r')
         plt.plot(goalbox[0], goalbox[1], 'g')
         plt.xlim(0, self.maxcoords[0])
         plt.ylim(0, self.maxcoords[1])
@@ -103,7 +114,7 @@ class rrt():
                 self.nodesList.append(xnew)
             if verbose == True:
                 print(k)
-
+        print(self.nodesList)
         x, y, z = list(zip(*self.nodesList))
         if plotting == True:
             self.drawparentlines(self.nodesList)
