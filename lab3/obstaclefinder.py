@@ -19,7 +19,7 @@ class imgToObs():
         cv2.destroyAllWindows()
 
 
-    def obsfind(self,scale):
+    def obsfind(self,scale, expand = 6):
         #Grayscale the image and convert to a boolean array (true for obstacle, false for free space)
         gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
         imagearray = np.transpose(np.array(gray))
@@ -27,22 +27,24 @@ class imgToObs():
 
         templine = []
         temparray = []
-        expand = 7
-        linei = expand
-        pixi = expand
+
         obsexparray = imagearray.copy()
         # Scale Obstacles to account for robot radius
-        for line in imagearray[expand:-expand]:
-            for pixel in line[expand:-expand]:
-                if pixel == True:
-                    for miniline in range(linei - expand, linei + expand):
-                        for minipix in range(pixi - expand, pixi + expand):
-                            obsexparray[miniline][minipix] = True
-                            # print(minipix,',',miniline)
-                pixi = pixi + 1
-            templine = []
-            pixi = expand
-            linei = linei + 1
+        for e in range(0,expand):
+            linei = e
+            pixi = e
+            for line in imagearray[e: -e]:
+                for pixel in line[e: -e]:
+                    if pixel == True:
+                        for miniline in range(linei - e - 1, linei + e + 1):
+                            for minipix in range(pixi - e - 1, pixi + e + 1):
+                                if 0 < miniline < obsexparray.shape[0]-1 and 0 < minipix < obsexparray.shape[1]-1:
+                                    obsexparray[miniline][minipix] = True
+                                # print(minipix,',',miniline)
+                    pixi = pixi + 1
+                templine = []
+                pixi = e
+                linei = linei + 1
 
         #Scale up array via duplication
         biggerimageOarray = []

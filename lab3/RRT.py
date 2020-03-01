@@ -20,6 +20,7 @@ class rrt():
         self.obstacletype = obstacletype    #Whether we're using the vertex obstacle type (manual entry) or the array type (import from obstacleFinder)
         self.live = live    #Whether we're using the "live" plotter or the end-time plotter
         self.divis = divis #draw every divis changes
+        self.scale = scale
         if self.live:   #Turns on interactive plotting if in live mode
             plt.ion()
 
@@ -189,8 +190,13 @@ class rrt():
                 plt.pause(0.01)
                 plt.ioff()
             plt.show()
+            xg = (np.array(xg) / self.scale).tolist()
+            yg = (np.array(yg) / self.scale).tolist()
+            trajectory = []
+            for i in range(0,len(xg)):
+                trajectory.append([xg[i],yg[i]])
 
-        return [xg, yg] #return the trajectory to the goal
+        return trajectory[::-1] #return the trajectory to the goal
 
 
 
