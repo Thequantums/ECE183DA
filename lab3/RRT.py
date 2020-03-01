@@ -8,7 +8,7 @@ class rrt():
 
 
     def __init__(self, origin = [250, 0, 0], maxcoords = [500,500], stepsize = 5, N = 10000, obstacles = [[0, 0, 100, 500], [400, 0, 500, 500], [200, 300, 400, 325],
-                     [100, 350, 250, 375]], goal = [140, 400, 150, 410], obstacletype = 'vertex', live = False, divis = 1):
+                     [100, 350, 250, 375]], goal = [140, 400, 150, 410], obstacletype = 'vertex', live = False, divis = 1,scale = 10):
         self.origin = origin  # Origin point, in form x,y,parent
         self.maxcoords = maxcoords  # Max values of field. x,y form. Assumes bottom left is 0,0
         self.stepsize = stepsize  # size of step to take (1=> unit vector step)
@@ -16,7 +16,7 @@ class rrt():
         self.obstacles = obstacles  # obstacle list. Rectangles only, in form xmin, ymin, xmax, ymax
         self.goal = goal  # goal. Rectangles only, in form xmin, ymin, xmax, ymax
         self.nodesList = [origin]  # list of all nodes
-        self.robotRadius = 5    #Radius of the circular robot estimate
+        self.robotRadius = 5*scale    #Radius of the circular robot estimate
         self.obstacletype = obstacletype    #Whether we're using the vertex obstacle type (manual entry) or the array type (import from obstacleFinder)
         self.live = live    #Whether we're using the "live" plotter or the end-time plotter
         self.divis = divis #draw every divis changes
@@ -83,8 +83,8 @@ class rrt():
         if stepy == 0:
             return True
 
-        for x in range(round(startnode[0]),round((startnode[0] + diffx)), stepx):
-            for y in range(round(startnode[1]),round((startnode[1] + diffy)), stepy):
+        for x in range(round(startnode[0]), round((startnode[0] + diffx)), stepx):
+            for y in range(round(startnode[1]), round((startnode[1] + diffy )), stepy):
                 if self.obsCheck([x,y],obs):
                     return True
         return False

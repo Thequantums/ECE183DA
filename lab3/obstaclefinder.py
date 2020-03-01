@@ -25,6 +25,38 @@ class imgToObs():
         imagearray = np.transpose(np.array(gray))
         imagearray = imagearray < 255
 
+        templine = []
+        temparray = []
+        expand = 7
+        linei = expand
+        pixi = expand
+        obsexparray = imagearray.copy()
+        # Scale Obstacles to account for robot radius
+        for line in imagearray[expand:-expand]:
+            for pixel in line[expand:-expand]:
+                if pixel == True:
+                    for miniline in range(linei - expand, linei + expand):
+                        for minipix in range(pixi - expand, pixi + expand):
+                            obsexparray[miniline][minipix] = True
+                            # print(minipix,',',miniline)
+                pixi = pixi + 1
+            templine = []
+            pixi = expand
+            linei = linei + 1
+
+        #Scale up array via duplication
+        biggerimageOarray = []
+        biggerimgOarrayline = []
+        for line in obsexparray.tolist():
+            for p in line:
+                for i in range(0,scale):
+                    biggerimgOarrayline.append(p)
+            for i in range(0, scale):
+                biggerimageOarray.append(biggerimgOarrayline)
+            biggerimgOarrayline = []
+        #return Larger true/false array
+        obarray = np.array(biggerimageOarray)
+
         #Scale up array via duplication
         biggerimagearray = []
         biggerimgarrayline = []
@@ -37,6 +69,9 @@ class imgToObs():
             biggerimgarrayline = []
         #return Larger true/false array
         array = np.array(biggerimagearray)
-        return array
+
+
+        print("ARRAY PROCESSING DONE")
+        return [array,obarray]
 
 
