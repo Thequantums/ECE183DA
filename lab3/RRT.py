@@ -20,7 +20,7 @@ class rrt():
         self.obstacletype = obstacletype    #Whether we're using the vertex obstacle type (manual entry) or the array type (import from obstacleFinder)
         self.live = live    #Whether we're using the "live" plotter or the end-time plotter
         self.divis = divis #draw every divis changes
-        self.scale = scale
+        self.scale = scale  #scale-up constant for graph
         if self.live:   #Turns on interactive plotting if in live mode
             plt.ion()
 
@@ -41,8 +41,8 @@ class rrt():
                         (o[1] < point[1] + self.robotRadius < o[3]) or (o[1] < point[1] - self.robotRadius < o[3]))):
                     return True
         elif self.obstacletype == 'array':  #array type obstacles not currently using robot radius
-            xflr = math.floor(point[0]) - 1
-            yflr = math.floor(point[1]) - 1
+            xflr = math.floor(point[0]) - 1 #create floor and ceilinged variables to make sure we cover all possible cases.
+            yflr = math.floor(point[1]) - 1 #This is because we need to reference the obstacles array, which needs discrete indeces.
             xcl = math.ceil(point[0]) - 1
             ycl = math.ceil(point[1]) - 1
             xmax = obstacles.shape[0]-1
@@ -64,8 +64,8 @@ class rrt():
             return True
         diffx = (endnode[0] - startnode[0])
         diffy = (endnode[1] - startnode[1])
-        if diffx > 0 + deadzone:        #This is in order to use range, which won't decrement unless it has a negative step
-            stepx = 1
+        if diffx > 0 + deadzone:        #This is in order to use range(), which won't decrement unless it has a negative step
+            stepx = 1                   #includes a deadzone to prevent issues with going perpindicular to axis (not sure why this is an issue, but this solves it)
         elif diffx < 0 - deadzone:
             stepx = -1
         else:
@@ -77,14 +77,14 @@ class rrt():
             stepy = -1
         else:
             stepy = 0
-
+                        #Don't allow perfectly perpindicular to axis motion, because of issues mentioned previously
         if stepx == 0:
             return True
 
         if stepy == 0:
             return True
 
-        for x in range(round(startnode[0]), round((startnode[0] + diffx)), stepx):
+        for x in range(round(startnode[0]), round((startnode[0] + diffx)), stepx):          #check every node in a rectangle with startnode and endnode as opposite corners to verify path
             for y in range(round(startnode[1]), round((startnode[1] + diffy )), stepy):
                 if self.obsCheck([x,y],obs):
                     return True
@@ -92,12 +92,12 @@ class rrt():
 
 
     def takestep(self, startnode, targetnode, nodes):  # finds a point one unit step from startnode, in the direction of targetnode. Takes "node" in order to set new node's parent node in node[2]
-        dist = self.finddist(startnode, targetnode)
+        dist = self.finddist(startnode, targetnode) #make sure startnode and targetnode are actually different
         if dist != 0:
-            newx = ((targetnode[0] - startnode[0]) / dist) * self.stepsize
+            newx = ((targetnode[0] - startnode[0]) / dist) * self.stepsize #set new x and y to one unit step, multiplied bu stepsize to expand the step if desired
             newy = ((targetnode[1] - startnode[1]) / dist) * self.stepsize
-            newnode = [newx + startnode[0], newy + startnode[1], nodes.index(startnode)]
-            if self.pathClear(startnode, newnode, self.obstacles):
+            newnode = [newx + startnode[0], newy + startnode[1], nodes.index(startnode)]    #sets x and y, as well as storing the parent node
+            if self.pathClear(startnode, newnode, self.obstacles):  #Check for obstacles in the path, returns the origin as a dummy node if the point is invalid
                 checkednode = self.origin
             else:
                 checkednode = newnode
@@ -117,17 +117,18 @@ class rrt():
         goalpath = []
         tracenode = []
 
-        if (goal[0] < node[0] < goal[2] and goal[1] < node[1] < goal[3]):
-            goalfound = True
-            tracenode = node
-            goalpath.append(tracenode)
-            while (tracenode[2] != 0):
-                tracetemp = nodelist[tracenode[2]]
-                goalpath.append(tracetemp)
-                tracenode = tracetemp
+        if (goal[0] < node[0] < goal[2] and goal[1] < node[1] < goal[3]): #if the node is in the correct range
+            goalfound = True        #set goal flag
+            tracenode = node        #stores "winning" node in tracenode
+            goalpath.append(tracenode)  #adds tracenode to the goal trajectory
+            while (tracenode[2] != 0):  #while we havent yet hit the origin
+                tracetemp = nodelist[tracenode[2]]  #get the parent node of tracenode
+                goalpath.append(tracetemp)      #append parent to trajectory
+                tracenode = tracetemp       #set the parent node to the current node and repeat
+            goalpath.append(self.origin)  # since the loop breaks once we hit the origin, add the origin to the end
         else:
             goalfound = False
-        goalpath.append(self.origin)
+
         return [goalfound, goalpath]
 
     def initplot(self, goal, obstacles):  # initializes plot by drawing obstacles, goal, and origin as well as setting the axes
@@ -148,7 +149,8 @@ class rrt():
                 pass
             else:
                 filterlist.append(n)
-        for node in filterlist:
+
+        for node in filterlist:             #plot each "jump" from child node to parent node
             if(node == nodelist[node[2]]):
                 pass
             else:
@@ -166,22 +168,22 @@ class rrt():
     def rrt(self, verbose = False, plotting = False):   #Main implementation of RRT
         xg=[]
         yg=[]
-        self.initplot(self.goal, self.obstacles)
+        self.initplot(self.goal, self.obstacles)    #initialize plot
         for k in range(0, self.N):      #create (or attempt to create) N nodes
-            xrand = self.randomPoint()
-            xnear = self.findclosest(self.nodesList, xrand)
-            xnew = self.takestep(xnear, xrand, self.nodesList)
-            [goalbool, goalpath] = self.checkgoal(self.nodesList, xnew, self.goal)
+            xrand = self.randomPoint()  #choose a random point
+            xnear = self.findclosest(self.nodesList, xrand)     #find the nearest node to the random point
+            xnew = self.takestep(xnear, xrand, self.nodesList)  #take one step towards the random point from the nearest node and create a new node
+            [goalbool, goalpath] = self.checkgoal(self.nodesList, xnew, self.goal)  #check the new node to see if it's in the goal zone
             if (goalbool):
-                [xg, yg, zg] = list(zip(*goalpath))
+                [xg, yg, zg] = list(zip(*goalpath))     #If it does succeed, stop creating new nodes and return the goal path
                 if verbose == True: #debug info, only dump if verbose
                     print('PATH FOUND')
                 break
-            else:
+            else:   #otherwise, just add it to the list and continue
                 self.nodesList.append(xnew)
             if verbose == True: #debug info, only dump if verbose
                 print(k)
-        if plotting == True:
+        if plotting == True:# Plot if that's enabled
             self.drawparentlines(self.nodesList)
             if goalbool:
                 plt.plot(xg, yg, 'y')
@@ -190,13 +192,13 @@ class rrt():
                 plt.pause(0.01)
                 plt.ioff()
             plt.show()
-            xg = (np.array(xg) / self.scale).tolist()
+            xg = (np.array(xg) / self.scale).tolist()   #scale trajectory down from increased scale
             yg = (np.array(yg) / self.scale).tolist()
             trajectory = []
             for i in range(0,len(xg)):
                 trajectory.append([xg[i],yg[i]])
 
-        return trajectory[::-1] #return the trajectory to the goal
+        return trajectory[::-1] #return the trajectory to the goal (reverse it, its in goal -> origin order until this line
 
 
 

@@ -27,8 +27,9 @@ class imgToObs():
 
         templine = []
         temparray = []
-
+        #Make a copy of the image to expand
         obsexparray = imagearray.copy()
+
         # Scale Obstacles to account for robot radius
         for e in range(0,expand):
             linei = e
@@ -40,12 +41,12 @@ class imgToObs():
                             for minipix in range(pixi - e - 1, pixi + e + 1):
                                 if 0 < miniline < obsexparray.shape[0]-1 and 0 < minipix < obsexparray.shape[1]-1:
                                     obsexparray[miniline][minipix] = True
-                                # print(minipix,',',miniline)
                     pixi = pixi + 1
                 templine = []
                 pixi = e
                 linei = linei + 1
 
+        #For actual obstacle array
         #Scale up array via duplication
         biggerimageOarray = []
         biggerimgOarrayline = []
@@ -59,6 +60,7 @@ class imgToObs():
         #return Larger true/false array
         obarray = np.array(biggerimageOarray)
 
+        #For display array (original, needs to be scaled the same for plot to work)
         #Scale up array via duplication
         biggerimagearray = []
         biggerimgarrayline = []
