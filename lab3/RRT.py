@@ -22,8 +22,9 @@ class rrt():
         self.live = live    #Whether we're using the "live" plotter or the end-time plotter
         self.divis = divis #draw every divis changes
         self.scale = scale  #scale-up constant for graph
-        self.rotationWeight = 2
-        self.forwardWeight = 1
+        self.sweetener = 75 #determines how often to push the tree towards the goal state. EG a value of 100 means it sets the random point to the goal
+        #every 100 iterations
+        self.outputList = [0,0,0] # PWML,PWMR,duration
         if self.live:   #Turns on interactive plotting if in live mode
             plt.ion()
 
@@ -274,7 +275,7 @@ class rrt():
         yg=[]
         self.initplot(self.goal, self.obstacles)    #initialize plot
         for k in range(0, self.N):      #create (or attempt to create) N nodes
-            if k % 100 != 0:
+            if k % self.sweetener != 0:
                 xrand = self.randomPoint()  #choose a random point
             else:
                 xrand = self.goal
