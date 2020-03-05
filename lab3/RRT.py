@@ -135,7 +135,7 @@ class rrt():
         # Difference bewteen path angle and ending angle
         theta_diff_2 = math.abs(theta_path-targetnode[2])
         if theta_diff_2 > math.pi:
-            theta_diff_2 = math.abs(theta_diff_1-2*math.pi)
+            theta_diff_2 = math.abs(theta_diff_2-2*math.pi)
         if (theta_path - theta_diff_2) % math.pi == targetnode[2]:
             theta_diff_2 = 0 - theta_diff_2
 
