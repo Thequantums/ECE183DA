@@ -37,12 +37,12 @@ class rrt():
         theta_path = math.atan2(node2[1] - node1[1], node2[0] - node1[0])
         if theta_path < 0:
             theta_path = theta_path + 2 * math.pi
-        theta_diff_1 = math.abs(theta_path - node1[2])
+        theta_diff_1 = abs(theta_path - node1[2])
         if theta_diff_1 > math.pi:
-            theta_diff_1 = math.abs(theta_diff_1 - 2 * math.pi)
-        theta_diff_2 = math.abs(theta_path - node2[2])
+            theta_diff_1 = abs(theta_diff_1 - 2 * math.pi)
+        theta_diff_2 = abs(theta_path - node2[2])
         if theta_diff_2 > math.pi:
-            theta_diff_2 = math.abs(theta_diff_2 - 2 * math.pi)
+            theta_diff_2 = abs(theta_diff_2 - 2 * math.pi)
 
         return (self.eucldist(node1, node2) / Vmax) + theta_diff_1/delta_max + theta_diff_2/delta_max
 
@@ -128,17 +128,17 @@ class rrt():
         V = 126.6
 
         # Get angle from start node to end node
-        theta_path = math.atan2(targetnode[1] - startnode[1], targetnode[0]-startnode[0])
+        theta_path = math.atan2(targetnode[1] - startnode[1], targetnode[0] - startnode[0])
         if theta_path < 0:
             theta_path = theta_path + 2*math.pi
 
         # Difference between start angle and path angle
-        theta_diff_1 = math.abs(theta_path-startnode[2])
+        theta_diff_1 = abs(theta_path-startnode[2])
         if theta_diff_1 > math.pi:
-            theta_diff_1 = math.abs(theta_diff_1-2*math.pi)
+            theta_diff_1 = abs(theta_diff_1-2*math.pi)
         if (startnode[2] - theta_diff_1) % math.pi == theta_path:
             theta_diff_1 = 0 - theta_diff_1
-        time_turn_1 = math.abs(theta_diff_1)/theta_dot
+        time_turn_1 = abs(theta_diff_1)/theta_dot
 
         # Use up time to turn that way
         if time_turn_1 > time_left:
@@ -155,14 +155,14 @@ class rrt():
         time_left = time_left - time_to_move
 
         # Difference bewteen path angle and ending angle
-        theta_diff_2 = math.abs(theta_path-targetnode[2])
+        theta_diff_2 = abs(theta_path-targetnode[2])
         if theta_diff_2 > math.pi:
-            theta_diff_2 = math.abs(theta_diff_2-2*math.pi)
+            theta_diff_2 = abs(theta_diff_2-2*math.pi)
         if (theta_path - theta_diff_2) % math.pi == targetnode[2]:
             theta_diff_2 = 0 - theta_diff_2
 
         # Use up time to turn to ending angle
-        time_turn_2 = math.abs(theta_diff_1)/theta_dot
+        time_turn_2 = abs(theta_diff_2)/theta_dot
         if time_turn_2 > time_left:
             time_turn_2 = time_left
         time_left = time_left - time_turn_2
@@ -178,7 +178,7 @@ class rrt():
         newy = startnode[1] + V*math.sin(theta_path)*time_to_move
 
         # Decide whether your turning right or left and adjust angle at max speed
-        if theta_diff_1 < 0:
+        if theta_diff_2 < 0:
             new_theta = new_theta - theta_dot * time_turn_2
         else:
             new_theta = new_theta + theta_dot * time_turn_2
