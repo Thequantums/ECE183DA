@@ -5,7 +5,7 @@ from tkinter import Image
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-from scipy import misc
+import math
 
 class imgToObs():
 
@@ -32,7 +32,7 @@ class imgToObs():
         obsexparray = imagearray.copy()
 
         # Scale Obstacles to account for robot radius
-
+        expand = math.ceil(expand)
         linei = 0
         pixi = 0
         for line in imagearray:

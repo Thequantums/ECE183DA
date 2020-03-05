@@ -11,7 +11,6 @@ class rrt():
                      [100, 350, 250, 375]], goal = [140, 400, 150, 410], obstacletype = 'vertex', live = False, divis = 1,scale = 10,arb = False):
         self.origin = origin  # Origin point, in form x,y,parent
         self.maxcoords = maxcoords  # Max values of field. x,y form. Assumes bottom left is 0,0
-        self.stepsize = stepsize  # size of step to take (1=> unit vector step)
         self.N = N  # Iterations to run
         self.obstacles = obstacles  # Configuration space, including obstacles. In the form of an array with indeces representing x and y coordinates
         # scaled up by the scale variable, in order to make the system sufficiently continuous. Rectangles only, in form xmin, ymin, xmax, ymax
