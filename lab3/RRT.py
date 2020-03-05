@@ -13,7 +13,8 @@ class rrt():
         self.maxcoords = maxcoords  # Max values of field. x,y form. Assumes bottom left is 0,0
         self.stepsize = stepsize  # size of step to take (1=> unit vector step)
         self.N = N  # Iterations to run
-        self.obstacles = obstacles  # obstacle list. Rectangles only, in form xmin, ymin, xmax, ymax
+        self.obstacles = obstacles  # Configuration space, including obstacles. In the form of an array with indeces representing x and y coordinates
+        # scaled up by the scale variable, in order to make the system sufficiently continuous. Rectangles only, in form xmin, ymin, xmax, ymax
         self.goal = goal  # goal. Rectangles only, in form xmin, ymin, xmax, ymax
         self.nodesList = [origin]  # list of all nodes
         self.robotRadius = 5*scale    #Radius of the circular robot estimate
@@ -24,10 +25,15 @@ class rrt():
         if self.live:   #Turns on interactive plotting if in live mode
             plt.ion()
 
+    def eucldist(self,node1, node2):  # returns the euclidian distance between two nodes
+        dist = math.sqrt(pow(node1[0] - node2[0], 2) + pow(node1[1] - node2[1], 2))
+        return dist
+
 
     def finddist(self,node1, node2):  # returns the euclidian distance between two nodes
         dist = math.sqrt(pow(node1[0] - node2[0], 2) + pow(node1[1] - node2[1], 2))
         return dist
+
 
     def randomPoint(self):  # generates a random point. Uses a larger space than the actual Configuration space in order to increase steps towards the outside of the space
         point = [random.uniform(-100, self.maxcoords[0]+100), random.uniform(-100, self.maxcoords[1]+100)]
@@ -107,10 +113,6 @@ class rrt():
         return checkednode
 
 
-    def roundstep(self, startnode, targetnode, nodes):  #TEST, trys to move towards point in an arc.
-        dist = self.finddist(startnode,targetnode)
-
-
     def findclosest(self,nodes, newnode):  # finds the closest node to newnode in nodelist nodes
         distances = []
         for i in nodes:
@@ -150,7 +152,6 @@ class rrt():
     def drawparentlines(self, nodelist):    #draws connecting lines between parent and child nodes
         filterlist = [self.origin]
         for n in nodelist:  #Filters out repeated points for speed of drawing
-            print(n)
             if n[3] == 0:
                 pass
             else:
