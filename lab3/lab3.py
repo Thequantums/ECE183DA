@@ -18,5 +18,7 @@ r = RRT.rrt(N = 3000,obstacles = obsimg, obstacletype = 'array', maxcoords = ima
 trajectory = r.rrt(verbose = True,plotting=True)
 #print trajectory
 print(trajectory)
-#print output list
-print(r.outputList)
+#print input list
+for x in r:
+            print(x[4])
+#print(r.outputList)
