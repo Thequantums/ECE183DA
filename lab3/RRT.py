@@ -98,19 +98,90 @@ class rrt():
 
 
     def takestep(self, startnode, targetnode, nodes):  # finds a point one unit step from startnode, in the direction of targetnode. Takes "node" in order to set new node's parent node in node[2]
-        dist = self.finddist(startnode, targetnode) #make sure startnode and targetnode are actually different
-        if dist != 0:
-            newx = ((targetnode[0] - startnode[0]) / dist) * self.stepsize #set new x and y to one unit step, multiplied bu stepsize to expand the step if desired
-            newy = ((targetnode[1] - startnode[1]) / dist) * self.stepsize
-            theta = 0## DUMB CODE FIX LATER
-            newnode = [newx + startnode[0], newy + startnode[1],theta , nodes.index(startnode)]    #sets x and y, as well as storing the parent node
-            if self.pathClear(startnode, newnode, self.obstacles):  #Check for obstacles in the path, returns the origin as a dummy node if the point is invalid
-                checkednode = self.origin
-            else:
-                checkednode = newnode
+        # You get one second to move
+        time_left = 1
+
+        # Full spin and Full velocity
+        theta_dot = 2.979
+        V = 126.6
+
+        # Get angle from start node to end node
+        theta_path = math.atan2(targetnode[1] - startnode[1], targetnode[0]-startnode[0])
+        if theta_path < 0:
+            theta_path = theta_path + 2*math.pi
+
+        # Difference between start angle and path angle
+        theta_diff_1 = math.abs(theta_path-startnode[2])
+        if theta_diff_1 > math.pi:
+            theta_diff_1 = math.abs(theta_diff_1-2*math.pi)
+        if (startnode[2] - theta_diff_1) % math.pi == theta_path:
+            theta_diff_1 = 0 - theta_diff_1
+        time_turn_1 = math.abs(theta_diff_1)/theta_dot
+
+        # Use up time to turn that way
+        if time_turn_1 > time_left:
+            time_turn_1 = time_left
+        time_left = time_left - time_turn_1
+
+        # Euclidian distance of path from start to target
+        euclid = self.eucldist(startnode,targetnode)
+
+        # Use up time to move along path
+        time_to_move = euclid/V
+        if time_to_move > time_left:
+            time_to_move = time_left
+        time_left = time_left - time_to_move
+
+        # Difference bewteen path angle and ending angle
+        theta_diff_2 = math.abs(theta_path-targetnode[2])
+        if theta_diff_2 > math.pi:
+            theta_diff_2 = math.abs(theta_diff_1-2*math.pi)
+        if (theta_path - theta_diff_2) % math.pi == targetnode[2]:
+            theta_diff_2 = 0 - theta_diff_2
+
+        # Use up time to turn to ending angle
+        time_turn_2 = math.abs(theta_diff_1)/theta_dot
+        if time_turn_2 > time_left:
+            time_turn_2 = time_left
+        time_left = time_left - time_turn_2
+
+        # Decide whether your turning right or left and adjust angle at max speed
+        if theta_diff_1 < 0:
+            new_theta = startnode[2] - theta_dot*time_turn_1
         else:
+            new_theta = startnode[2] + theta_dot*time_turn_1
+
+        # Move along path at max speed
+        newx = startnode[0] + V*math.cos(theta_path)*time_to_move
+        newy = startnode[1] + V*math.sin(theta_path)*time_to_move
+
+        # Decide whether your turning right or left and adjust angle at max speed
+        if theta_diff_1 < 0:
+            new_theta = new_theta - theta_dot * time_turn_2
+        else:
+            new_theta = new_theta + theta_dot * time_turn_2
+
+        # Set up new node
+        newnode = [newx, newy, new_theta, nodes.index(startnode)]
+        if self.pathClear(startnode, newnode, self.obstacles):
             checkednode = self.origin
+        else:
+            checkednode = newnode
         return checkednode
+
+        #dist = self.finddist(startnode, targetnode) #make sure startnode and targetnode are actually different
+        #if dist != 0:
+        #    newx = ((targetnode[0] - startnode[0]) / dist) * self.stepsize #set new x and y to one unit step, multiplied bu stepsize to expand the step if desired
+        #    newy = ((targetnode[1] - startnode[1]) / dist) * self.stepsize
+        #    theta = 0## DUMB CODE FIX LATER
+        #    newnode = [newx + startnode[0], newy + startnode[1],theta , nodes.index(startnode)]    #sets x and y, as well as storing the parent node
+        #    if self.pathClear(startnode, newnode, self.obstacles):  #Check for obstacles in the path, returns the origin as a dummy node if the point is invalid
+        #        checkednode = self.origin
+        #    else:
+        #        checkednode = newnode
+        #else:
+        #    checkednode = self.origin
+        #return checkednode
 
 
     def findclosest(self,nodes, newnode):  # finds the closest node to newnode in nodelist nodes
