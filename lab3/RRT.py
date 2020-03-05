@@ -116,7 +116,12 @@ class rrt():
     def findclosest(self,nodes, newnode):  # finds the closest node to newnode in nodelist nodes
         distances = []
         for i in nodes:
-            distances.append(self.finddist(i, newnode))
+            vect1 = [math.acos(i[2]), math.asin(i[2])] #getting units vector for xnear
+            vect2 = [newnode[0] - i[0], newnode[1] - i[1]] #getting vector for path from xnear to  newnode
+            unit_vect1 = vect1/np.linalg.norm(vect1) #make it a unit vector, already a unit vector
+            unit_vect2 = vect2/np.linalg.norm(vect2) #make it a unit vector
+            delta_direction_angle = np.arccos(np.dot(unit_vect1, unit_vect2)) #getting angles
+            distances.append(self.finddist(i, newnode) + (abs(i[2] - delta_direction_angle))/delta_max + (abs(i[2] - newnode[2]))/delta_max )
         return nodes[distances.index(min(distances))]
 
 
@@ -171,13 +176,6 @@ class rrt():
     def optimize(self): #method reserved if we can get RRT* to function
         pass
         # dumb stuff
-
-    def find_nearest(self,nodes,xrand):
-        distance
-        for i in nodes:
-            
-            dist = math.sqrt(pow(node1[0] - node2[0], 2) + pow(node1[1] - node2[1], 2))
-
 
     def rrt(self, verbose = False, plotting = False):   #Main implementation of RRT
         xg=[]
