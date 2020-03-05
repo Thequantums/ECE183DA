@@ -36,7 +36,7 @@ class rrt():
 
 
     def randomPoint(self):  # generates a random point. Uses a larger space than the actual Configuration space in order to increase steps towards the outside of the space
-        point = [random.uniform(-100, self.maxcoords[0]+100), random.uniform(-100, self.maxcoords[1]+100)]
+        point = [random.uniform(0, self.maxcoords[0]), random.uniform(0, self.maxcoords[1]),random.uniform(0,2*math.pi)]
         return point
 
 
@@ -187,7 +187,14 @@ class rrt():
     def findclosest(self,nodes, newnode):  # finds the closest node to newnode in nodelist nodes
         distances = []
         for i in nodes:
-            distances.append(self.finddist(i, newnode))
+            vect1 = [math.acos(i[0]), math.asin(i[1])] #getting units vector for xnear
+            vect2 = [newnode[0] - i[0], newnode[1] - i[1]] #getting vector for path from xnear to  newnode
+            unit_vect1 = vect1/np.linalg.norm(vect1) #make it a unit vector, already a unit vector
+            unit_vect2 = vect2/np.linalg.norm(vect2) #make it a unit vector
+            delta_direction_angle = np.arccos(np.dot(unit_vect1, unit_vect2)) #getting angles
+            vect3 = [math.acos(newnode[0]), math.asin(newnode[1])] #unit vector for the xnew
+            delta_after_reached = np.acrcos(np.dot(unit_vect2,vect3))
+            distances.append(self.finddist(i, newnode) + (abs(delta_direction_angle)/delta_max + (abs(delta_after_reached)/delta_max )
         return nodes[distances.index(min(distances))]
 
 
@@ -243,19 +250,15 @@ class rrt():
         pass
         # dumb stuff
 
-    def find_nearest(self,nodes,xrand):
-        distance
-        for i in nodes:
-            
-            dist = math.sqrt(pow(node1[0] - node2[0], 2) + pow(node1[1] - node2[1], 2))
-
-
     def rrt(self, verbose = False, plotting = False):   #Main implementation of RRT
         xg=[]
         yg=[]
         self.initplot(self.goal, self.obstacles)    #initialize plot
         for k in range(0, self.N):      #create (or attempt to create) N nodes
-            xrand = self.randomPoint()  #choose a random point
+            if k % 100 == 0:
+                xrand = [200*self.scale,180*self.scale,0]
+            else:
+                xrand = self.randomPoint()  #choose a random point
             xnear = self.findclosest(self.nodesList, xrand)     #find the nearest node to the random point
             xnew = self.takestep(xnear, xrand, self.nodesList)  #take one step towards the random point from the nearest node and create a new node
             [goalbool, goalpath] = self.checkgoal(self.nodesList, xnew, self.goal)  #check the new node to see if it's in the goal zone
