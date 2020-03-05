@@ -222,7 +222,7 @@ class rrt():
         goalpath = []
         tracenode = []
 
-        if (node[0] == goal[0] and node[1] == goal[1] and node[2] == goal[2]): #if the node is in the correct range
+        if (node[0] == goal[0] and node[1] == goal[1] and round(node[2],3)%(2*math.pi) == round(goal[2],3)) % (2*math.pi): #if the node is in the correct range
             goalfound = True        #set goal flag
             tracenode = node        #stores "winning" node in tracenode
             goalpath.append(tracenode)  #adds tracenode to the goal trajectory

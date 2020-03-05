@@ -7,7 +7,7 @@ import numpy as np
 
 scale = 5      #set scale-up to increase obstacle accuracy
 img = obstaclefinder.imgToObs() #create img from imported picture
-[image,obsimg] = img.obsfind(scale,5) #takes scale up factor and obstacle expansion factor and produces display array and obstacle array
+[image,obsimg] = img.obsfind(scale,10) #takes scale up factor and obstacle expansion factor and produces display array and obstacle array
 
 plt.imshow(image.T,interpolation='nearest') #show 2D representation of map
 

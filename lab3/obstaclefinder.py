@@ -32,20 +32,20 @@ class imgToObs():
         obsexparray = imagearray.copy()
 
         # Scale Obstacles to account for robot radius
-        for e in range(0,expand):
-            linei = e
-            pixi = e
-            for line in imagearray[e: -e]:
-                for pixel in line[e: -e]:
-                    if pixel == True:
-                        for miniline in range(linei - e - 1, linei + e + 1):
-                            for minipix in range(pixi - e - 1, pixi + e + 1):
-                                if 0 < miniline < obsexparray.shape[0]-1 and 0 < minipix < obsexparray.shape[1]-1:
-                                    obsexparray[miniline][minipix] = True
-                    pixi = pixi + 1
-                templine = []
-                pixi = e
-                linei = linei + 1
+
+        linei = 0
+        pixi = 0
+        for line in imagearray:
+            for pixel in line:
+                if pixel == True:
+                    for miniline in range(linei - expand - 1, linei + expand + 1):
+                        for minipix in range(pixi - expand - 1, pixi + expand + 1):
+                            if 0 < miniline < obsexparray.shape[0] - 1 and 0 < minipix < obsexparray.shape[1] - 1:
+                                obsexparray[miniline][minipix] = True
+                pixi = pixi + 1
+            templine = []
+            pixi = 0
+            linei = linei + 1
 
         #For actual obstacle array
         #Scale up array via duplication
