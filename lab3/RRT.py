@@ -207,7 +207,7 @@ class rrt():
                 string_in = string_in + 'PWML=40, PWMR=149, t=' + str(time_turn_2) + '\n'
 
         # Set up new node
-        newnode = [newx, newy, new_theta, nodes.index(startnode)]
+        newnode = [newx, newy, new_theta, nodes.index(startnode), string_in]
         if self.pathClear(startnode, newnode, self.obstacles):
             checkednode = self.origin
         else:
