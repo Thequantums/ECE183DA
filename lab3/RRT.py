@@ -7,7 +7,7 @@ import numpy as np
 class rrt():
 
 
-    def __init__(self, origin = [250, 0, 0], maxcoords = [500,500], stepsize = 5, N = 10000, obstacles = [[0, 0, 100, 500], [400, 0, 500, 500], [200, 300, 400, 325],
+    def __init__(self, origin = [250, 0, 0, 0], maxcoords = [500,500], stepsize = 5, N = 10000, obstacles = [[0, 0, 100, 500], [400, 0, 500, 500], [200, 300, 400, 325],
                      [100, 350, 250, 375]], goal = [140, 400, 150, 410], obstacletype = 'vertex', live = False, divis = 1,scale = 10):
         self.origin = origin  # Origin point, in form x,y,parent
         self.maxcoords = maxcoords  # Max values of field. x,y form. Assumes bottom left is 0,0
@@ -59,7 +59,7 @@ class rrt():
 
 
     def pathClear(self, startnode, endnode, obs):   #determines if a path is clear using obsCheck. Does this by canvassing a rectangle with the two input points in opposite corners.
-        deadzone = self.stepsize/100    #deadzone because axis perpindicular paths break everything for some reason
+        deadzone = self.stepsize/self.scale*2    #deadzone because axis perpindicular paths break everything for some reason
         if self.obsCheck(endnode,obs):  #Don't bother if the endpoint is not allowed
             return True
         diffx = (endnode[0] - startnode[0])
@@ -96,7 +96,8 @@ class rrt():
         if dist != 0:
             newx = ((targetnode[0] - startnode[0]) / dist) * self.stepsize #set new x and y to one unit step, multiplied bu stepsize to expand the step if desired
             newy = ((targetnode[1] - startnode[1]) / dist) * self.stepsize
-            newnode = [newx + startnode[0], newy + startnode[1], nodes.index(startnode)]    #sets x and y, as well as storing the parent node
+            theta = 0## DUMB CODE FIX LATER
+            newnode = [newx + startnode[0], newy + startnode[1],theta , nodes.index(startnode)]    #sets x and y, as well as storing the parent node
             if self.pathClear(startnode, newnode, self.obstacles):  #Check for obstacles in the path, returns the origin as a dummy node if the point is invalid
                 checkednode = self.origin
             else:
@@ -104,6 +105,10 @@ class rrt():
         else:
             checkednode = self.origin
         return checkednode
+
+
+    def roundstep(self, startnode, targetnode, nodes):  #TEST, trys to move towards point in an arc.
+        dist = self.finddist(startnode,targetnode)
 
 
     def findclosest(self,nodes, newnode):  # finds the closest node to newnode in nodelist nodes
@@ -121,8 +126,8 @@ class rrt():
             goalfound = True        #set goal flag
             tracenode = node        #stores "winning" node in tracenode
             goalpath.append(tracenode)  #adds tracenode to the goal trajectory
-            while (tracenode[2] != 0):  #while we havent yet hit the origin
-                tracetemp = nodelist[tracenode[2]]  #get the parent node of tracenode
+            while (tracenode[3] != 0):  #while we havent yet hit the origin
+                tracetemp = nodelist[tracenode[3]]  #get the parent node of tracenode
                 goalpath.append(tracetemp)      #append parent to trajectory
                 tracenode = tracetemp       #set the parent node to the current node and repeat
             goalpath.append(self.origin)  # since the loop breaks once we hit the origin, add the origin to the end
@@ -145,16 +150,17 @@ class rrt():
     def drawparentlines(self, nodelist):    #draws connecting lines between parent and child nodes
         filterlist = [self.origin]
         for n in nodelist:  #Filters out repeated points for speed of drawing
-            if n[2] == 0:
+            print(n)
+            if n[3] == 0:
                 pass
             else:
                 filterlist.append(n)
 
         for node in filterlist:             #plot each "jump" from child node to parent node
-            if(node == nodelist[node[2]]):
+            if(node == nodelist[node[3]]):
                 pass
             else:
-                jumplist = [node, nodelist[node[2]]]
+                jumplist = [node, nodelist[node[3]]]
                 plt.plot([jumplist[0][0],jumplist[1][0]],[jumplist[0][1],jumplist[1][1]],'b')
                 if self.live and filterlist.index(node) % self.divis == 0:   #Draw these consecutively if in live mode
                     plt.draw()
@@ -175,7 +181,7 @@ class rrt():
             xnew = self.takestep(xnear, xrand, self.nodesList)  #take one step towards the random point from the nearest node and create a new node
             [goalbool, goalpath] = self.checkgoal(self.nodesList, xnew, self.goal)  #check the new node to see if it's in the goal zone
             if (goalbool):
-                [xg, yg, zg] = list(zip(*goalpath))     #If it does succeed, stop creating new nodes and return the goal path
+                [xg, yg, tg, zg] = list(zip(*goalpath))     #If it does succeed, stop creating new nodes and return the goal path
                 if verbose == True: #debug info, only dump if verbose
                     print('PATH FOUND')
                 break

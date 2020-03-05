@@ -13,7 +13,7 @@ plt.imshow(image.T,interpolation='nearest') #show obstacle array
 
 #initialize RRT
 r = RRT.rrt(stepsize = 100,N = 10000,obstacles = obsimg, obstacletype = 'array', maxcoords = image.shape,
-            origin = [0,50*scale,0],goal = [195*scale,165*scale,225*scale,190*scale],live = True, divis = 10,scale = scale)
+            origin = [0,50*scale,0,0],goal = [195*scale,165*scale,225*scale,190*scale],live = True, divis = 10,scale = scale)
 #Perform RRT
 trajectory = r.rrt(verbose = True,plotting=True)
 #print trajectory

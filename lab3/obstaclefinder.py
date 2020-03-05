@@ -1,6 +1,7 @@
 ##anku255
 from tkinter import Image
 
+
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
@@ -9,7 +10,7 @@ from scipy import misc
 class imgToObs():
 
 
-    def __init__(self,imagepath = "/Users/bobbe/PycharmProjects/ECE183DA/lab3/testmaze.png"):
+    def __init__(self,imagepath = "C:/Users/Cooper/PycharmProjects/ECE183DA/lab3/testmaze.png"):
         self.image = cv2.imread(imagepath)
 
     def showimage(self):
