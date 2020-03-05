@@ -36,7 +36,7 @@ class rrt():
 
 
     def randomPoint(self):  # generates a random point. Uses a larger space than the actual Configuration space in order to increase steps towards the outside of the space
-        point = [random.uniform(-100, self.maxcoords[0]+100), random.uniform(-100, self.maxcoords[1]+100)]
+        point = [random.uniform(0, self.maxcoords[0]), random.uniform(0, self.maxcoords[1]),random.uniform(0,2*math.pi)]
         return point
 
 
@@ -184,7 +184,10 @@ class rrt():
         yg=[]
         self.initplot(self.goal, self.obstacles)    #initialize plot
         for k in range(0, self.N):      #create (or attempt to create) N nodes
-            xrand = self.randomPoint()  #choose a random point
+            if k % 100 == 0:
+                xrand = [200*self.scale,180*self.scale,0]
+            else:
+                xrand = self.randomPoint()  #choose a random point
             xnear = self.findclosest(self.nodesList, xrand)     #find the nearest node to the random point
             xnew = self.takestep(xnear, xrand, self.nodesList)  #take one step towards the random point from the nearest node and create a new node
             [goalbool, goalpath] = self.checkgoal(self.nodesList, xnew, self.goal)  #check the new node to see if it's in the goal zone
