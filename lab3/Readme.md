@@ -1,4 +1,4 @@
-README For Lab 2
+README For Lab 3
 
 This lab was dedicated to the creation and implementation of an RRT pathing algorithm. Our particular version uses image processing to parse an image of a group of obstacles into a Configuration Space, and then finds a path from a (either defined or arbitrary) origin point to a defined goal point. In our case, we were able to get the RRT implementation working reasonably well, though it occasionally overrotates and has difficulty getting to the correct final heading. Despite this error, the RRT implementation we have created is accurate to the theoretical model of the RRT and accurately reflects the state dynamics of our robot.
 
