@@ -172,6 +172,13 @@ class rrt():
         pass
         # dumb stuff
 
+    def find_nearest(self,nodes,xrand):
+        distance
+        for i in nodes:
+            
+            dist = math.sqrt(pow(node1[0] - node2[0], 2) + pow(node1[1] - node2[1], 2))
+
+
     def rrt(self, verbose = False, plotting = False):   #Main implementation of RRT
         xg=[]
         yg=[]
@@ -206,8 +213,3 @@ class rrt():
                 trajectory.append([xg[i],yg[i]])
 
         return trajectory[::-1] #return the trajectory to the goal (reverse it, its in goal -> origin order until this line
-
-
-
-
-
