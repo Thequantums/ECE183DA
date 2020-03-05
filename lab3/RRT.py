@@ -221,7 +221,7 @@ class rrt():
         goalpath = []
         tracenode = []
 
-        if (goal[0] < node[0] < goal[2] and goal[1] < node[1] < goal[3]): #if the node is in the correct range
+        if (node[0] == goal[0] and node[1] == goal[1] and node[2] == goal[2]): #if the node is in the correct range
             goalfound = True        #set goal flag
             tracenode = node        #stores "winning" node in tracenode
             goalpath.append(tracenode)  #adds tracenode to the goal trajectory
@@ -236,12 +236,12 @@ class rrt():
         return [goalfound, goalpath]
 
     def initplot(self, goal, obstacles):  # initializes plot by drawing obstacles, goal, and origin as well as setting the axes
-        goalbox = [[goal[0], goal[2], goal[2], goal[0], goal[0]], [goal[1], goal[1], goal[3], goal[3], goal[1]]]
         if self.obstacletype == 'vertex':
             for o in obstacles:
                 obsbox = [[o[0], o[2], o[2], o[0], o[0]], [o[1], o[1], o[3], o[3], o[1]]]
                 plt.plot(obsbox[0], obsbox[1], 'r')
-        plt.plot(goalbox[0], goalbox[1], 'g')
+        plt.scatter(goal[0], goal[1],s=25, c='g')
+        plt.scatter(self.origin[0], self.origin[1], s=25, c='r')
         plt.xlim(0, self.maxcoords[0])
         plt.ylim(0, self.maxcoords[1])
 
@@ -254,13 +254,13 @@ class rrt():
             else:
                 filterlist.append(n)
 
-        for node in filterlist:             #plot each "jump" from child node to parent node
+        for node in nodelist:             #plot each "jump" from child node to parent node
             if(node == nodelist[node[3]]):
                 pass
             else:
                 jumplist = [node, nodelist[node[3]]]
                 plt.plot([jumplist[0][0],jumplist[1][0]],[jumplist[0][1],jumplist[1][1]],'b')
-                if self.live and filterlist.index(node) % self.divis == 0:   #Draw these consecutively if in live mode
+                if self.live and nodelist.index(node) % self.divis == 0:   #Draw these consecutively if in live mode
                     plt.draw()
                     plt.pause(0.0001)
 
@@ -274,7 +274,11 @@ class rrt():
         yg=[]
         self.initplot(self.goal, self.obstacles)    #initialize plot
         for k in range(0, self.N):      #create (or attempt to create) N nodes
-            xrand = self.randomPoint()  #choose a random point
+            if k % 100 != 0:
+                xrand = self.randomPoint()  #choose a random point
+            else:
+                xrand = self.goal
+
             xnear = self.findclosest(self.nodesList, xrand)     #find the nearest node to the random point
             xnew = self.takestep(xnear, xrand, self.nodesList)  #take one step towards the random point from the nearest node and create a new node
             [goalbool, goalpath] = self.checkgoal(self.nodesList, xnew, self.goal)  #check the new node to see if it's in the goal zone

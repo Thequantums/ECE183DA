@@ -12,8 +12,8 @@ img = obstaclefinder.imgToObs() #create img from imported picture
 plt.imshow(image.T,interpolation='nearest') #show 2D representation of map
 
 #initialize RRT
-r = RRT.rrt(N = 5000,obstacles = obsimg, obstacletype = 'array', maxcoords = image.shape,
-            origin = [35*scale,215*scale,0,0],goal = [120*scale,25*scale,130*scale,35*scale],live = True, divis = 10,scale = scale)
+r = RRT.rrt(N = 1000,obstacles = obsimg, obstacletype = 'array', maxcoords = image.shape,
+            origin = [35*scale,215*scale,0,0],goal = [125*scale,30*scale,0],live = True, divis = 10,scale = scale)
 #Perform RRT
 trajectory = r.rrt(verbose = True,plotting=True)
 #print trajectory
