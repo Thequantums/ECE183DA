@@ -7,7 +7,7 @@ import numpy as np
 class rrt():
 
 
-    def __init__(self, origin = [250, 0, 0, 0], maxcoords = [500,500], stepsize = 5, N = 10000, obstacles = [[0, 0, 100, 500], [400, 0, 500, 500], [200, 300, 400, 325],
+    def __init__(self, origin = [250, 0, 0, 0], maxcoords = [500,500], stepsize = 5, N = 10000, obstacles = [[0, 0, 100, 500, ''], [400, 0, 500, 500], [200, 300, 400, 325],
                      [100, 350, 250, 375]], goal = [140, 400, 150, 410], obstacletype = 'vertex', live = False, divis = 1,scale = 10):
         self.origin = origin  # Origin point, in form x,y,parent
         self.maxcoords = maxcoords  # Max values of field. x,y form. Assumes bottom left is 0,0
@@ -38,6 +38,8 @@ class rrt():
         delta_max = 2.979 #max radians for one second rotation
 
         theta_path = math.atan2(node2[1] - node1[1], node2[0] - node1[0])
+        if node1[1] == node2[1] and node1[0] == node2[0]:
+            theta_path = node2[2]
         if theta_path < 0:
             theta_path = theta_path + 2 * math.pi
         theta_diff_1 = abs(theta_path - node1[2])
@@ -132,6 +134,8 @@ class rrt():
 
         # Get angle from start node to end node
         theta_path = math.atan2(targetnode[1] - startnode[1], targetnode[0] - startnode[0])
+        if starternode[1] == targetnode[1] and starternode[0] == targetnode[0]:
+            theta_path = targetnode[2]
         if theta_path < 0:
             theta_path = theta_path + 2*math.pi
 
@@ -187,6 +191,20 @@ class rrt():
             new_theta = new_theta + theta_dot * time_turn_2
             
         new_theta = new_theta % (2*math.pi)
+        
+        string_in = ''
+        if time_turn_1 >= .01:
+            if theta_diff_1 < 0:
+                string_in = string_in + 'PWML=149, PWMR=50, t=' + str(time_turn_1) + '\n'
+            if theta_diff_1 > 0:
+                string_in = string_in + 'PWML=40, PWMR=149, t=' + str(time_turn_1) + '\n'
+        if time_to_move >= .01:
+            string_in = string_in + 'PWML=149, PWMR=149, t=' + str(time_to_move) + '\n'
+        if time_turn_2 >= .01:
+            if theta_diff_2 < 0:
+                string_in = string_in + 'PWML=149, PWMR=50, t=' + str(time_turn_2) + '\n'
+            if theta_diff_2 > 0:
+                string_in = string_in + 'PWML=40, PWMR=149, t=' + str(time_turn_2) + '\n'
 
         # Set up new node
         newnode = [newx, newy, new_theta, nodes.index(startnode)]
