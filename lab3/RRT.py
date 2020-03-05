@@ -311,8 +311,6 @@ class rrt():
 
             xnear = self.findclosest(self.nodesList, xrand)     #find the nearest node to the random point
             xnew = self.takestep(xnear, xrand, self.nodesList)  #take one step towards the random point from the nearest node and create a new node
-            if xnew[0] == self.goal[0] and xnew[1] == self.goal[1]:
-                print(xnew[2],',',self.goal[2])
             [goalbool, goalpath] = self.checkgoal(self.nodesList, xnew, self.goal)  #check the new node to see if it's in the goal zone
             if (goalbool):
                 [xg, yg, tg, zg, sg] = list(zip(*goalpath))     #If it does succeed, stop creating new nodes and return the goal path
