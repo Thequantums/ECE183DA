@@ -31,7 +31,17 @@ class rrt():
 
 
     def finddist(self,node1, node2):  # returns the euclidian distance between two nodes
-        dist = math.sqrt(pow(node1[0] - node2[0], 2) + pow(node1[1] - node2[1], 2))
+        Vmax = 126.6 #Max distance for one second movement
+        delta_max = 2.979 #max radians for one second rotation
+
+        vect1 = [math.acos(node1[0]), math.asin(node1[1])]  # getting units vector for xnear
+        vect2 = [node2[0] - node1[0], node2[1] - node1[1]]  # getting vector for path from xnear to  newnode
+        unit_vect1 = vect1 / np.linalg.norm(vect1)  # make it a unit vector, already a unit vector
+        unit_vect2 = vect2 / np.linalg.norm(vect2)  # make it a unit vector
+        delta_direction_angle = np.arccos(np.dot(unit_vect1, unit_vect2))  # getting angles
+        vect3 = [math.acos(node2[0]), math.asin(node2[1])]  # unit vector for the xnew
+        delta_after_reached = np.acrcos(np.dot(unit_vect2, vect3))
+        dist = (self.eucldist(node1, node2) / Vmax) + (abs(delta_direction_angle) / delta_max + (abs(delta_after_reached) / delta_max))
         return dist
 
 
@@ -187,14 +197,7 @@ class rrt():
     def findclosest(self,nodes, newnode):  # finds the closest node to newnode in nodelist nodes
         distances = []
         for i in nodes:
-            vect1 = [math.acos(i[0]), math.asin(i[1])] #getting units vector for xnear
-            vect2 = [newnode[0] - i[0], newnode[1] - i[1]] #getting vector for path from xnear to  newnode
-            unit_vect1 = vect1/np.linalg.norm(vect1) #make it a unit vector, already a unit vector
-            unit_vect2 = vect2/np.linalg.norm(vect2) #make it a unit vector
-            delta_direction_angle = np.arccos(np.dot(unit_vect1, unit_vect2)) #getting angles
-            vect3 = [math.acos(newnode[0]), math.asin(newnode[1])] #unit vector for the xnew
-            delta_after_reached = np.acrcos(np.dot(unit_vect2,vect3))
-            distances.append(self.finddist(i, newnode) + (abs(delta_direction_angle)/delta_max + (abs(delta_after_reached)/delta_max )
+            distances.append(self.finddist(i,newnode))
         return nodes[distances.index(min(distances))]
 
 
