@@ -9,7 +9,7 @@ scale = 10      #set scale-up to increase obstacle accuracy
 img = obstaclefinder.imgToObs() #create img from imported picture
 [image,obsimg] = img.obsfind(scale,7) #takes scale up factor and obstacle expansion factor and produces display array and obstacle array
 
-plt.imshow(image.T,interpolation='nearest') #show  space
+plt.imshow(image.T,interpolation='nearest') #show 2D representation of map
 
 #initialize RRT
 r = RRT.rrt(stepsize = 100,N = 10000,obstacles = obsimg, obstacletype = 'array', maxcoords = image.shape,
