@@ -7,8 +7,8 @@ import numpy as np
 class rrt():
 
 
-    def __init__(self, origin = [250, 0, 0, 0], maxcoords = [500,500], stepsize = 5, N = 10000, obstacles = [[0, 0, 100, 500, ''], [400, 0, 500, 500], [200, 300, 400, 325],
-                     [100, 350, 250, 375]], goal = [140, 400, 150, 410], obstacletype = 'vertex', live = False, divis = 1,scale = 10):
+    def __init__(self, origin = [250, 0, 0, 0,''], maxcoords = [500,500], stepsize = 5, N = 10000, obstacles = [[0, 0, 100, 500], [400, 0, 500, 500], [200, 300, 400, 325],
+                     [100, 350, 250, 375]], goal = [140, 400, 150, 410], obstacletype = 'vertex', live = False, divis = 1,scale = 10,arb = False):
         self.origin = origin  # Origin point, in form x,y,parent
         self.maxcoords = maxcoords  # Max values of field. x,y form. Assumes bottom left is 0,0
         self.stepsize = stepsize  # size of step to take (1=> unit vector step)
@@ -22,9 +22,9 @@ class rrt():
         self.live = live    #Whether we're using the "live" plotter or the end-time plotter
         self.divis = divis #draw every divis changes
         self.scale = scale  #scale-up constant for graph
-        self.sweetener = 75 #determines how often to push the tree towards the goal state. EG a value of 100 means it sets the random point to the goal
+        self.sweetener = 50 #determines how often to push the tree towards the goal state. EG a value of 100 means it sets the random point to the goal
         #every 100 iterations
-        self.outputList = [0,0,0] # PWML,PWMR,duration
+        self.isArbitrary = arb    #picks a random start and end point
         if self.live:   #Turns on interactive plotting if in live mode
             plt.ion()
 
@@ -63,7 +63,7 @@ class rrt():
 
 
     def randomPoint(self):  # generates a random point. Uses a larger space than the actual Configuration space in order to increase steps towards the outside of the space
-        point = [random.uniform(0, self.maxcoords[0]), random.uniform(0, self.maxcoords[1]),random.uniform(0,2*math.pi)]
+        point = [random.uniform(0, self.maxcoords[0]), random.uniform(0, self.maxcoords[1]),random.uniform(0,2*math.pi),0,'']
         return point
 
 
@@ -89,6 +89,13 @@ class rrt():
             if(obstacles[xflr][yflr] or obstacles[xflr][ycl] or obstacles[xcl][yflr] or obstacles[xcl][ycl]): #if the rounded location (via any rounding scheme) is a wall (True in the obstacle array), say so
                 return True
         return False
+
+
+    def createArb(self):
+        self.origin = self.randomPoint()
+        while (self.obsCheck(self.origin, self.obstacles)):
+            self.origin = self.randomPoint()
+        self.nodesList = [self.origin]
 
 
     def pathClear(self, startnode, endnode, obs):   #determines if a path is clear using obsCheck. Does this by canvassing a rectangle with the two input points in opposite corners.
@@ -134,7 +141,7 @@ class rrt():
 
         # Get angle from start node to end node
         theta_path = math.atan2(targetnode[1] - startnode[1], targetnode[0] - startnode[0])
-        if starternode[1] == targetnode[1] and starternode[0] == targetnode[0]:
+        if startnode[1] == targetnode[1] and startnode[0] == targetnode[0]:
             theta_path = targetnode[2]
         if theta_path < 0:
             theta_path = theta_path + 2*math.pi
@@ -191,7 +198,7 @@ class rrt():
             new_theta = new_theta + theta_dot * time_turn_2
             
         new_theta = new_theta % (2*math.pi)
-        
+
         string_in = ''
         if time_turn_1 >= .01:
             if theta_diff_1 < 0:
@@ -240,7 +247,7 @@ class rrt():
         goalpath = []
         tracenode = []
 
-        if (node[0] == goal[0] and node[1] == goal[1] and round(node[2],3)%(2*math.pi) == round(goal[2],3)) % (2*math.pi): #if the node is in the correct range
+        if (node[0] == goal[0] and node[1] == goal[1] and (node[2] %2*math.pi) == (goal[2] % (2*math.pi))): #if the node is in the correct range
             goalfound = True        #set goal flag
             tracenode = node        #stores "winning" node in tracenode
             goalpath.append(tracenode)  #adds tracenode to the goal trajectory
@@ -291,7 +298,11 @@ class rrt():
     def rrt(self, verbose = False, plotting = False):   #Main implementation of RRT
         xg=[]
         yg=[]
+        if (self.isArbitrary):
+            self.createArb()
         self.initplot(self.goal, self.obstacles)    #initialize plot
+
+
         for k in range(0, self.N):      #create (or attempt to create) N nodes
             if k % self.sweetener != 0:
                 xrand = self.randomPoint()  #choose a random point
@@ -300,11 +311,12 @@ class rrt():
 
             xnear = self.findclosest(self.nodesList, xrand)     #find the nearest node to the random point
             xnew = self.takestep(xnear, xrand, self.nodesList)  #take one step towards the random point from the nearest node and create a new node
+            if xnew[0] == self.goal[0] and xnew[1] == self.goal[1]:
+                print(xnew[2],',',self.goal[2])
             [goalbool, goalpath] = self.checkgoal(self.nodesList, xnew, self.goal)  #check the new node to see if it's in the goal zone
             if (goalbool):
-                [xg, yg, tg, zg] = list(zip(*goalpath))     #If it does succeed, stop creating new nodes and return the goal path
-                if verbose == True: #debug info, only dump if verbose
-                    print('PATH FOUND')
+                [xg, yg, tg, zg, sg] = list(zip(*goalpath))     #If it does succeed, stop creating new nodes and return the goal path
+                print('PATH FOUND')
                 break
             else:   #otherwise, just add it to the list and continue
                 self.nodesList.append(xnew)
@@ -323,6 +335,6 @@ class rrt():
             yg = (np.array(yg) / self.scale).tolist()
             trajectory = []
             for i in range(0,len(xg)):
-                trajectory.append([xg[i],yg[i],tg[i]])
+                trajectory.append([xg[i],yg[i],tg[i],sg[i]])
 
         return trajectory[::-1] #return the trajectory to the goal (reverse it, its in goal -> origin order until this line
