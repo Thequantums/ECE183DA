@@ -46,7 +46,7 @@ class rrt():
         if theta_diff_2 > math.pi:
             theta_diff_2 = abs(theta_diff_2 - 2 * math.pi)
 
-        return (self.eucldist(node1, node2) / Vmax) * (self.forwardWeight) + (theta_diff_1/delta_max + theta_diff_2/delta_max)*self.rotationWeight
+        return (self.eucldist(node1, node2) / Vmax) + (theta_diff_1/delta_max + theta_diff_2/delta_max)
 
         # vect1 = [math.acos(node1[0]), math.asin(node1[1])]  # getting units vector for xnear
         # vect2 = [node2[0] - node1[0], node2[1] - node1[1]]  # getting vector for path from xnear to  newnode
@@ -138,7 +138,7 @@ class rrt():
         theta_diff_1 = abs(theta_path-startnode[2])
         if theta_diff_1 > math.pi:
             theta_diff_1 = abs(theta_diff_1-2*math.pi)
-        if (startnode[2] - theta_diff_1) % math.pi == theta_path:
+        if (startnode[2] - theta_diff_1) % (2*math.pi) == theta_path:
             theta_diff_1 = 0 - theta_diff_1
         time_turn_1 = abs(theta_diff_1)/theta_dot
 
@@ -160,7 +160,7 @@ class rrt():
         theta_diff_2 = abs(theta_path-targetnode[2])
         if theta_diff_2 > math.pi:
             theta_diff_2 = abs(theta_diff_2-2*math.pi)
-        if (theta_path - theta_diff_2) % math.pi == targetnode[2]:
+        if (theta_path - theta_diff_2) % (2*math.pi) == targetnode[2]:
             theta_diff_2 = 0 - theta_diff_2
 
         # Use up time to turn to ending angle
@@ -181,9 +181,11 @@ class rrt():
 
         # Decide whether your turning right or left and adjust angle at max speed
         if theta_diff_2 < 0:
-            pass#new_theta = new_theta - theta_dot * time_turn_2
+            new_theta = new_theta - theta_dot * time_turn_2
         else:
-            pass#new_theta = new_theta + theta_dot * time_turn_2
+            new_theta = new_theta + theta_dot * time_turn_2
+            
+        new_theta = new_theta % (2*math.pi)
 
         # Set up new node
         newnode = [newx, newy, new_theta, nodes.index(startnode)]
