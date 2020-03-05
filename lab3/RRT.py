@@ -116,12 +116,14 @@ class rrt():
     def findclosest(self,nodes, newnode):  # finds the closest node to newnode in nodelist nodes
         distances = []
         for i in nodes:
-            vect1 = [math.acos(i[2]), math.asin(i[2])] #getting units vector for xnear
+            vect1 = [math.acos(i[0]), math.asin(i[1])] #getting units vector for xnear
             vect2 = [newnode[0] - i[0], newnode[1] - i[1]] #getting vector for path from xnear to  newnode
             unit_vect1 = vect1/np.linalg.norm(vect1) #make it a unit vector, already a unit vector
             unit_vect2 = vect2/np.linalg.norm(vect2) #make it a unit vector
             delta_direction_angle = np.arccos(np.dot(unit_vect1, unit_vect2)) #getting angles
-            distances.append(self.finddist(i, newnode) + (abs(i[2] - delta_direction_angle))/delta_max + (abs(i[2] - newnode[2]))/delta_max )
+            vect3 = [math.acos(newnode[0]), math.asin(newnode[1])] #unit vector for the xnew
+            delta_after_reached = np.acrcos(np.dot(unit_vect2,vect3))
+            distances.append(self.finddist(i, newnode) + (abs(delta_direction_angle)/delta_max + (abs(delta_after_reached)/delta_max )
         return nodes[distances.index(min(distances))]
 
 
