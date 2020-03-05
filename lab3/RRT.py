@@ -34,15 +34,27 @@ class rrt():
         Vmax = 126.6 #Max distance for one second movement
         delta_max = 2.979 #max radians for one second rotation
 
-        vect1 = [math.acos(node1[0]), math.asin(node1[1])]  # getting units vector for xnear
-        vect2 = [node2[0] - node1[0], node2[1] - node1[1]]  # getting vector for path from xnear to  newnode
-        unit_vect1 = vect1 / np.linalg.norm(vect1)  # make it a unit vector, already a unit vector
-        unit_vect2 = vect2 / np.linalg.norm(vect2)  # make it a unit vector
-        delta_direction_angle = np.arccos(np.dot(unit_vect1, unit_vect2))  # getting angles
-        vect3 = [math.acos(node2[0]), math.asin(node2[1])]  # unit vector for the xnew
-        delta_after_reached = np.acrcos(np.dot(unit_vect2, vect3))
-        dist = (self.eucldist(node1, node2) / Vmax) + (abs(delta_direction_angle) / delta_max + (abs(delta_after_reached) / delta_max))
-        return dist
+        theta_path = math.atan2(node2[1] - node1[1], node2[0] - node1[0])
+        if theta_path < 0:
+            theta_path = theta_path + 2 * math.pi
+        theta_diff_1 = math.abs(theta_path - node1[2])
+        if theta_diff_1 > math.pi:
+            theta_diff_1 = math.abs(theta_diff_1 - 2 * math.pi)
+        theta_diff_2 = math.abs(theta_path - node2[2])
+        if theta_diff_2 > math.pi:
+            theta_diff_2 = math.abs(theta_diff_2 - 2 * math.pi)
+
+        return (self.eucldist(node1, node2) / Vmax) + theta_diff_1/delta_max + theta_diff_2/delta_max
+
+        # vect1 = [math.acos(node1[0]), math.asin(node1[1])]  # getting units vector for xnear
+        # vect2 = [node2[0] - node1[0], node2[1] - node1[1]]  # getting vector for path from xnear to  newnode
+        # unit_vect1 = vect1 / np.linalg.norm(vect1)  # make it a unit vector, already a unit vector
+        # unit_vect2 = vect2 / np.linalg.norm(vect2)  # make it a unit vector
+        # delta_direction_angle = np.arccos(np.dot(unit_vect1, unit_vect2))  # getting angles
+        # vect3 = [math.acos(node2[0]), math.asin(node2[1])]  # unit vector for the xnew
+        # delta_after_reached = np.acrcos(np.dot(unit_vect2, vect3))
+        # dist = (self.eucldist(node1, node2) / Vmax) + (abs(delta_direction_angle) / delta_max + (abs(delta_after_reached) / delta_max))
+        # return dist
 
 
     def randomPoint(self):  # generates a random point. Uses a larger space than the actual Configuration space in order to increase steps towards the outside of the space
