@@ -10,7 +10,7 @@ from scipy import misc
 class imgToObs():
 
 
-    def __init__(self,imagepath = "C:/Users/Cooper/PycharmProjects/ECE183DA/lab3/testmaze.png"):
+    def __init__(self,imagepath = "C:/Users/bobbe/PycharmProjects/ECE183DA/lab3/maze.bmp"):
         self.image = cv2.imread(imagepath)
 
     def showimage(self):

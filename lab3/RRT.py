@@ -22,6 +22,8 @@ class rrt():
         self.live = live    #Whether we're using the "live" plotter or the end-time plotter
         self.divis = divis #draw every divis changes
         self.scale = scale  #scale-up constant for graph
+        self.rotationWeight = 2
+        self.forwardWeight = 1
         if self.live:   #Turns on interactive plotting if in live mode
             plt.ion()
 
@@ -44,7 +46,7 @@ class rrt():
         if theta_diff_2 > math.pi:
             theta_diff_2 = abs(theta_diff_2 - 2 * math.pi)
 
-        return (self.eucldist(node1, node2) / Vmax) + theta_diff_1/delta_max + theta_diff_2/delta_max
+        return (self.eucldist(node1, node2) / Vmax) * (self.forwardWeight) + (theta_diff_1/delta_max + theta_diff_2/delta_max)*self.rotationWeight
 
         # vect1 = [math.acos(node1[0]), math.asin(node1[1])]  # getting units vector for xnear
         # vect2 = [node2[0] - node1[0], node2[1] - node1[1]]  # getting vector for path from xnear to  newnode
@@ -87,7 +89,7 @@ class rrt():
 
 
     def pathClear(self, startnode, endnode, obs):   #determines if a path is clear using obsCheck. Does this by canvassing a rectangle with the two input points in opposite corners.
-        deadzone = self.stepsize/self.scale*2    #deadzone because axis perpindicular paths break everything for some reason
+        deadzone = 1    #deadzone because axis perpindicular paths break everything for some reason
         if self.obsCheck(endnode,obs):  #Don't bother if the endpoint is not allowed
             return True
         diffx = (endnode[0] - startnode[0])
@@ -179,9 +181,9 @@ class rrt():
 
         # Decide whether your turning right or left and adjust angle at max speed
         if theta_diff_2 < 0:
-            new_theta = new_theta - theta_dot * time_turn_2
+            pass#new_theta = new_theta - theta_dot * time_turn_2
         else:
-            new_theta = new_theta + theta_dot * time_turn_2
+            pass#new_theta = new_theta + theta_dot * time_turn_2
 
         # Set up new node
         newnode = [newx, newy, new_theta, nodes.index(startnode)]
@@ -270,10 +272,7 @@ class rrt():
         yg=[]
         self.initplot(self.goal, self.obstacles)    #initialize plot
         for k in range(0, self.N):      #create (or attempt to create) N nodes
-            if k % 100 == 0:
-                xrand = [200*self.scale,180*self.scale,0]
-            else:
-                xrand = self.randomPoint()  #choose a random point
+            xrand = self.randomPoint()  #choose a random point
             xnear = self.findclosest(self.nodesList, xrand)     #find the nearest node to the random point
             xnew = self.takestep(xnear, xrand, self.nodesList)  #take one step towards the random point from the nearest node and create a new node
             [goalbool, goalpath] = self.checkgoal(self.nodesList, xnew, self.goal)  #check the new node to see if it's in the goal zone
@@ -299,6 +298,6 @@ class rrt():
             yg = (np.array(yg) / self.scale).tolist()
             trajectory = []
             for i in range(0,len(xg)):
-                trajectory.append([xg[i],yg[i]])
+                trajectory.append([xg[i],yg[i],tg[i]])
 
         return trajectory[::-1] #return the trajectory to the goal (reverse it, its in goal -> origin order until this line
