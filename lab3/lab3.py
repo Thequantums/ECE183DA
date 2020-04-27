@@ -3,6 +3,7 @@ import sys
 import matplotlib.pyplot as plt
 import RRT
 import obstaclefinder
+import math
 import numpy as np
 robotradius = 85
 scale = 5      #set scale-up to increase obstacle accuracy
@@ -12,10 +13,10 @@ img = obstaclefinder.imgToObs(imagepath = "C:/Users/bobbe/PycharmProjects/ECE183
 plt.imshow(image.T,interpolation='nearest') #show 2D representation of map
 
 #initialize RRT
-r = RRT.rrt(N = 10000,obstacles = obsimg, obstacletype = 'array', maxcoords = image.shape,
-            origin = [35*scale,215*scale,0,0,''],goal = [125*scale,30*scale,0],live = True, divis = 5,scale = scale,arb = False)
+r = RRT.rrt(N = 3000,obstacles = obsimg, obstacletype = 'array', maxcoords = image.shape,
+            origin = [35*scale,215*scale,0,0,'',0],goal = [125*scale,30*scale,math.pi/2],live = True, divis = 5,scale = scale,arb = False)
 #Perform RRT
-trajectory = r.rrt(verbose = False,plotting=True)
+trajectory = r.rrt(verbose = True,plotting=True)
 #print trajectory
 print(trajectory)
 #print input list

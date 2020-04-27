@@ -7,7 +7,7 @@ import numpy as np
 class rrt():
 
 
-    def __init__(self, origin = [250, 0, 0, 0,''], maxcoords = [500,500], stepsize = 5, N = 10000, obstacles = [[0, 0, 100, 500], [400, 0, 500, 500], [200, 300, 400, 325],
+    def __init__(self, origin = [250, 0, 0, 0,'',0], maxcoords = [500,500], stepsize = 5, N = 10000, obstacles = [[0, 0, 100, 500], [400, 0, 500, 500], [200, 300, 400, 325],
                      [100, 350, 250, 375]], goal = [140, 400, 150, 410], obstacletype = 'vertex', live = False, divis = 1,scale = 10,arb = False):
         self.origin = origin  # Origin point, in form x,y,parent
         self.maxcoords = maxcoords  # Max values of field. x,y form. Assumes bottom left is 0,0
@@ -62,7 +62,7 @@ class rrt():
 
 
     def randomPoint(self):  # generates a random point. Uses a larger space than the actual Configuration space in order to increase steps towards the outside of the space
-        point = [random.uniform(0, self.maxcoords[0]), random.uniform(0, self.maxcoords[1]),random.uniform(0,2*math.pi),0,'']
+        point = [random.uniform(0, self.maxcoords[0]), random.uniform(0, self.maxcoords[1]),random.uniform(0,2*math.pi),0,'',0]
         return point
 
 
@@ -117,6 +117,9 @@ class rrt():
         else:
             stepy = 0
                         #Don't allow perfectly perpindicular to axis motion, because of issues mentioned previously
+        if stepx==0 and stepy==0:
+            return False
+
         if stepx == 0:
             return True
 
@@ -142,6 +145,8 @@ class rrt():
         theta_path = math.atan2(targetnode[1] - startnode[1], targetnode[0] - startnode[0])
         if startnode[1] == targetnode[1] and startnode[0] == targetnode[0]:
             theta_path = targetnode[2]
+            print(startnode[2],targetnode[2])
+
         if theta_path < 0:
             theta_path = theta_path + 2*math.pi
 
@@ -195,8 +200,9 @@ class rrt():
             new_theta = new_theta - theta_dot * time_turn_2
         else:
             new_theta = new_theta + theta_dot * time_turn_2
-            
+
         new_theta = new_theta % (2*math.pi)
+
 
         string_in = ''
         if time_turn_1 >= .01:
@@ -213,7 +219,10 @@ class rrt():
                 string_in = string_in + 'PWML=40, PWMR=149, t=' + str(time_turn_2) + '\n'
 
         # Set up new node
-        newnode = [newx, newy, new_theta, nodes.index(startnode), string_in]
+        newnode = [newx, newy, new_theta, nodes.index(startnode), string_in,0]
+        newnode[5] = startnode[5] + self.finddist(startnode, newnode)
+
+
         if self.pathClear(startnode, newnode, self.obstacles):
             checkednode = self.origin
         else:
@@ -239,14 +248,29 @@ class rrt():
         distances = []
         for i in nodes:
             distances.append(self.finddist(i,newnode))
+
         return nodes[distances.index(min(distances))]
+
+
+    def findclosestOPT(self,nodes, newnode):  # finds the closest node to newnode in nodelist nodes
+        radius = 2
+        distances = []
+        for i in nodes:
+            distances.append(self.finddist(i,newnode))
+        closest = nodes[distances.index(min(distances))]
+        cheapest = closest
+        for i in nodes:
+            if self.finddist(closest, i) < radius:
+                if i[5] < cheapest[5]:
+                    cheapest = i
+        return cheapest
 
 
     def checkgoal(self,nodelist, node, goal):  # checks if the point is within the goal. if not, it sets goalfound to false. if it is, it returns the node path it took and sets goalfound to false
         goalpath = []
         tracenode = []
 
-        if (node[0] == goal[0] and node[1] == goal[1] and (node[2] %2*math.pi) == (goal[2] % (2*math.pi))): #if the node is in the correct range
+        if (node[0] == goal[0] and node[1] == goal[1] and node[2] == goal[2]): #if the node is in the correct range
             goalfound = True        #set goal flag
             tracenode = node        #stores "winning" node in tracenode
             goalpath.append(tracenode)  #adds tracenode to the goal trajectory
@@ -290,9 +314,14 @@ class rrt():
                     plt.pause(0.0001)
 
 
-    def optimize(self): #method reserved if we can get RRT* to function
-        pass
-        # dumb stuff
+    def optimize(self,nodes,newnode): #method reserved if we can get RRT* to function
+        radius = 2
+        for i in nodes:
+            if self.finddist(newnode, i) < radius:
+                if i[5]+self.finddist(i,newnode) < newnode[5]:
+                    newnode[5] = i[5]+self.finddist(i,newnode)
+                    newnode[3] = nodes.index(i)
+        return newnode
 
     def rrt(self, verbose = False, plotting = False):   #Main implementation of RRT
         xg=[]
@@ -309,10 +338,12 @@ class rrt():
                 xrand = self.goal
 
             xnear = self.findclosest(self.nodesList, xrand)     #find the nearest node to the random point
+            #xnear = self.findclosestOPT(self.nodesList, xrand)
             xnew = self.takestep(xnear, xrand, self.nodesList)  #take one step towards the random point from the nearest node and create a new node
+            #xnew = self.optimize(self.nodesList,xnew)
             [goalbool, goalpath] = self.checkgoal(self.nodesList, xnew, self.goal)  #check the new node to see if it's in the goal zone
             if (goalbool):
-                [xg, yg, tg, zg, sg] = list(zip(*goalpath))     #If it does succeed, stop creating new nodes and return the goal path
+                [xg, yg, tg, zg, sg,cg] = list(zip(*goalpath))     #If it does succeed, stop creating new nodes and return the goal path
                 print('PATH FOUND')
                 break
             else:   #otherwise, just add it to the list and continue
