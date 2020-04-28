@@ -142,7 +142,28 @@ class rrt():
             else:
                 #hippo has infinite time to move
                 #hippo can go from every x',y',delta' to x, y, delta  if there is no obstacle along the path
-                newnode = [targetnode[0], targetnode[1], targetnode[2], nodes.index(startnode), "the drive function will handle", startnode[5] + self.finddist(startnode, newnode)]
+                #but we can restrict how far the target node can be from this start node. This is so we can get many nodes along the path which helps improve dynamic obtacle avoidance
+                v = 126.6 # fake value
+                time_to_move = 1 #in simulation it will take more than 1 sec because of angle rotation. will have to change that
+                euclid = self.eucldist(startnode,targetnode)
+
+                # limit move time to only 1 second
+                time_to_move = euclid/V
+                if time_to_move > time_left:
+                    time_to_move = time_left
+
+                # Get angle from start node to end node
+                theta_path = math.atan2(targetnode[1] - startnode[1], targetnode[0] - startnode[0])
+                if startnode[1] == targetnode[1] and startnode[0] == targetnode[0]:
+                    theta_path = targetnode[2]
+
+                if theta_path < 0:
+                    theta_path = theta_path + 2*math.pi
+
+                newx = startnode[0] + V*math.cos(theta_path)*time_to_move
+                newy = startnode[1] + V*math.sin(theta_path)*time_to_move
+
+                newnode = [newx, newy, targetnode[2], nodes.index(startnode), "the drive function will handle", startnode[5] + self.finddist(startnode, newnode)]
                 return newnode
         else:
             print('hound dynamics')
