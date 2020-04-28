@@ -10,7 +10,7 @@ import math
 class imgToObs():
 
 
-    def __init__(self,imagepath = "C:/Users/bobbe/PycharmProjects/ECE183DA/lab3/maze.bmp"):
+    def __init__(self,imagepath = "~/EE183DB/ECE183DA/lab3/maze.bmp"):
         self.image = cv2.imread(imagepath)
 
     def showimage(self):
@@ -78,5 +78,3 @@ class imgToObs():
 
         print("ARRAY PROCESSING DONE")
         return [array,obarray]
-
-

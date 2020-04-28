@@ -98,6 +98,7 @@ class rrt():
         self.nodesList = [self.origin]
 
 
+#This is a function to check obstacle along the path from start node to end node. The path is a straight line both for hippo and hound.
     def pathClear(self, startnode, endnode, obs):   #determines if a path is clear using obsCheck. Does this by canvassing a rectangle with the two input points in opposite corners.
         deadzone = 1    #deadzone because axis perpindicular paths break everything for some reason
         if self.obsCheck(endnode,obs):  #Don't bother if the endpoint is not allowed
@@ -136,15 +137,15 @@ class rrt():
 
     def takestep(self, startnode, targetnode, nodes,dynamics):  # finds a point one unit step from startnode, in the direction of targetnode. Takes "node" in order to set new node's parent node in node[2]
         if dynamics == 'hippo':
-            print('hound dynamics')
+            print('hippo dynamics')
             if self.pathClear(startnode, targetnode, self.obstacles):
                 return self.origin
             else:
                 #hippo has infinite time to move
-                #hippo can go from every x',y',delta' to x, y, delta  if there is no obstacle along the path
+                #hippo can go from every x',y',delta' to x, y, delta  if there is no obstacle along the path.
                 #but we can restrict how far the target node can be from this start node. This is so we can get many nodes along the path which helps improve dynamic obtacle avoidance
                 v = 126.6 # fake value
-                time_to_move = 1 #in simulation it will take more than 1 sec because of angle rotation. will have to change that
+                time_to_move = 1 #in simulation it will take more than 1 sec because of angle rotation. will have to change that.
                 euclid = self.eucldist(startnode,targetnode)
 
                 # limit move time to only 1 second
@@ -169,9 +170,9 @@ class rrt():
             print('hound dynamics')
             #put dynamics here
             #dynamic for hound, having two wheels similar to paper bot
-            if self.pathClear(startnode, newnode, self.obstacles):
+            if self.pathClear(startnode, targetnode, self.obstacles):
                 #there is a obstacle along the path, return origin
-                return self.orign
+                return self.origin
             else:
                 # You get one second to move
                 time_left = 1
