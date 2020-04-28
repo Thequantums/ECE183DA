@@ -4,8 +4,9 @@ import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
-class rrt():
 
+
+class rrt():
 
     def __init__(self, origin = [250, 0, 0, 0,'',0], maxcoords = [500,500], stepsize = 5, N = 10000, obstacles = [[0, 0, 100, 500], [400, 0, 500, 500], [200, 300, 400, 325],
                      [100, 350, 250, 375]], goal = [140, 400, 150, 410], obstacletype = 'vertex', live = False, divis = 1,scale = 10,arb = False):
@@ -16,7 +17,7 @@ class rrt():
         # scaled up by the scale variable, in order to make the system sufficiently continuous. Rectangles only, in form xmin, ymin, xmax, ymax
         self.goal = goal  # goal. Rectangles only, in form xmin, ymin, xmax, ymax
         self.nodesList = [origin]  # list of all nodes
-        self.robotRadius = 5*scale    #Radius of the circular robot estimate
+        self.robotRadius = 20*scale    #Radius of the circular robot estimate
         self.obstacletype = obstacletype    #Whether we're using the vertex obstacle type (manual entry) or the array type (import from obstacleFinder)
         self.live = live    #Whether we're using the "live" plotter or the end-time plotter
         self.divis = divis #draw every divis changes
@@ -126,108 +127,120 @@ class rrt():
         if stepy == 0:
             return True
 
-        for x in range(round(startnode[0]), round((startnode[0] + diffx)), stepx):          #check every node in a rectangle with startnode and endnode as opposite corners to verify path
-            for y in range(round(startnode[1]), round((startnode[1] + diffy )), stepy):
+        for x in range(round(startnode[0]), round((startnode[0] + diffx+(self.robotRadius*stepx))), stepx):          #check every node in a rectangle with startnode and endnode as opposite corners to verify path
+            for y in range(round(startnode[1]), round((startnode[1] + diffy+(self.robotRadius*stepy) )), stepy):
                 if self.obsCheck([x,y],obs):
                     return True
         return False
 
 
-    def takestep(self, startnode, targetnode, nodes):  # finds a point one unit step from startnode, in the direction of targetnode. Takes "node" in order to set new node's parent node in node[2]
-        # You get one second to move
-        time_left = 1
-
-        # Full spin and Full velocity
-        theta_dot = 2.979
-        V = 126.6
-
-        # Get angle from start node to end node
-        theta_path = math.atan2(targetnode[1] - startnode[1], targetnode[0] - startnode[0])
-        if startnode[1] == targetnode[1] and startnode[0] == targetnode[0]:
-            theta_path = targetnode[2]
-            print(startnode[2],targetnode[2])
-
-        if theta_path < 0:
-            theta_path = theta_path + 2*math.pi
-
-        # Difference between start angle and path angle
-        theta_diff_1 = abs(theta_path-startnode[2])
-        if theta_diff_1 > math.pi:
-            theta_diff_1 = abs(theta_diff_1-2*math.pi)
-        if (startnode[2] - theta_diff_1) % (2*math.pi) == theta_path:
-            theta_diff_1 = 0 - theta_diff_1
-        time_turn_1 = abs(theta_diff_1)/theta_dot
-
-        # Use up time to turn that way
-        if time_turn_1 > time_left:
-            time_turn_1 = time_left
-        time_left = time_left - time_turn_1
-
-        # Euclidian distance of path from start to target
-        euclid = self.eucldist(startnode,targetnode)
-
-        # Use up time to move along path
-        time_to_move = euclid/V
-        if time_to_move > time_left:
-            time_to_move = time_left
-        time_left = time_left - time_to_move
-
-        # Difference bewteen path angle and ending angle
-        theta_diff_2 = abs(theta_path-targetnode[2])
-        if theta_diff_2 > math.pi:
-            theta_diff_2 = abs(theta_diff_2-2*math.pi)
-        if (theta_path - theta_diff_2) % (2*math.pi) == targetnode[2]:
-            theta_diff_2 = 0 - theta_diff_2
-
-        # Use up time to turn to ending angle
-        time_turn_2 = abs(theta_diff_2)/theta_dot
-        if time_turn_2 > time_left:
-            time_turn_2 = time_left
-        time_left = time_left - time_turn_2
-
-        # Decide whether your turning right or left and adjust angle at max speed
-        if theta_diff_1 < 0:
-            new_theta = startnode[2] - theta_dot*time_turn_1
+    def takestep(self, startnode, targetnode, nodes,dynamics):  # finds a point one unit step from startnode, in the direction of targetnode. Takes "node" in order to set new node's parent node in node[2]
+        if dynamics == 'hippo':
+            print('hound dynamics')
+            if self.pathClear(startnode, targetnode, self.obstacles):
+                return self.origin
+            else:
+                #hippo has infinite time to move
+                #hippo can go from every x',y',delta' to x, y, delta  if there is no obstacle along the path
+                newnode = [targetnode[0], targetnode[1], targetnode[2], nodes.index(startnode), "the drive function will handle", startnode[5] + self.finddist(startnode, newnode)]
+                return newnode
         else:
-            new_theta = startnode[2] + theta_dot*time_turn_1
+            print('hound dynamics')
+            #put dynamics here
+            #dynamic for hound, having two wheels similar to paper bot
+            if self.pathClear(startnode, newnode, self.obstacles):
+                #there is a obstacle along the path, return origin
+                return self.orign
+            else:
+                # You get one second to move
+                time_left = 1
 
-        # Move along path at max speed
-        newx = startnode[0] + V*math.cos(theta_path)*time_to_move
-        newy = startnode[1] + V*math.sin(theta_path)*time_to_move
+                # Full spin and Full velocity
+                theta_dot = 2.979 #rotation velocity
+                V = 126.6 #translating velocity
 
-        # Decide whether your turning right or left and adjust angle at max speed
-        if theta_diff_2 < 0:
-            new_theta = new_theta - theta_dot * time_turn_2
-        else:
-            new_theta = new_theta + theta_dot * time_turn_2
+                # Get angle from start node to end node
+                theta_path = math.atan2(targetnode[1] - startnode[1], targetnode[0] - startnode[0])
+                if startnode[1] == targetnode[1] and startnode[0] == targetnode[0]:
+                    theta_path = targetnode[2]
+                    print(startnode[2],targetnode[2])
 
-        new_theta = new_theta % (2*math.pi)
+                if theta_path < 0:
+                    theta_path = theta_path + 2*math.pi
 
+                # Difference between start angle and path angle
+                theta_diff_1 = abs(theta_path-startnode[2])
+                if theta_diff_1 > math.pi:
+                    theta_diff_1 = abs(theta_diff_1-2*math.pi)
+                if (startnode[2] - theta_diff_1) % (2*math.pi) == theta_path:
+                    theta_diff_1 = 0 - theta_diff_1
+                time_turn_1 = abs(theta_diff_1)/theta_dot
 
-        string_in = ''
-        if time_turn_1 >= .01:
-            if theta_diff_1 < 0:
-                string_in = string_in + 'PWML=149, PWMR=50, t=' + str(time_turn_1) + '\n'
-            if theta_diff_1 > 0:
-                string_in = string_in + 'PWML=40, PWMR=149, t=' + str(time_turn_1) + '\n'
-        if time_to_move >= .01:
-            string_in = string_in + 'PWML=149, PWMR=149, t=' + str(time_to_move) + '\n'
-        if time_turn_2 >= .01:
-            if theta_diff_2 < 0:
-                string_in = string_in + 'PWML=149, PWMR=50, t=' + str(time_turn_2) + '\n'
-            if theta_diff_2 > 0:
-                string_in = string_in + 'PWML=40, PWMR=149, t=' + str(time_turn_2) + '\n'
+                # Use up time to turn that way
+                if time_turn_1 > time_left:
+                    time_turn_1 = time_left
+                time_left = time_left - time_turn_1
 
-        # Set up new node
-        newnode = [newx, newy, new_theta, nodes.index(startnode), string_in,0]
-        newnode[5] = startnode[5] + self.finddist(startnode, newnode)
+                # Euclidian distance of path from start to target
+                euclid = self.eucldist(startnode,targetnode)
 
+                # Use up time to move along path
+                time_to_move = euclid/V
+                if time_to_move > time_left:
+                    time_to_move = time_left
+                time_left = time_left - time_to_move
 
-        if self.pathClear(startnode, newnode, self.obstacles):
-            checkednode = self.origin
-        else:
-            checkednode = newnode
-        return checkednode
+                # Difference bewteen path angle and ending angle
+                theta_diff_2 = abs(theta_path-targetnode[2])
+                if theta_diff_2 > math.pi:
+                    theta_diff_2 = abs(theta_diff_2-2*math.pi)
+                if (theta_path - theta_diff_2) % (2*math.pi) == targetnode[2]:
+                    theta_diff_2 = 0 - theta_diff_2
+
+                # Use up time to turn to ending angle
+                time_turn_2 = abs(theta_diff_2)/theta_dot
+                if time_turn_2 > time_left:
+                    time_turn_2 = time_left
+                time_left = time_left - time_turn_2
+
+                # Decide whether your turning right or left and adjust angle at max speed
+                if theta_diff_1 < 0:
+                    new_theta = startnode[2] - theta_dot*time_turn_1
+                else:
+                    new_theta = startnode[2] + theta_dot*time_turn_1
+
+                # Move along path at max speed
+                newx = startnode[0] + V*math.cos(theta_path)*time_to_move
+                newy = startnode[1] + V*math.sin(theta_path)*time_to_move
+
+                # Decide whether your turning right or left and adjust angle at max speed
+                if theta_diff_2 < 0:
+                    new_theta = new_theta - theta_dot * time_turn_2
+                else:
+                    new_theta = new_theta + theta_dot * time_turn_2
+
+                new_theta = new_theta % (2*math.pi)
+
+                #append pwm signal strings to node
+                string_in = ''
+                if time_turn_1 >= .01:
+                    if theta_diff_1 < 0:
+                        string_in = string_in + 'PWML=149, PWMR=50, t=' + str(time_turn_1) + '\n'
+                    if theta_diff_1 > 0:
+                        string_in = string_in + 'PWML=40, PWMR=149, t=' + str(time_turn_1) + '\n'
+                if time_to_move >= .01:
+                    string_in = string_in + 'PWML=149, PWMR=149, t=' + str(time_to_move) + '\n'
+                if time_turn_2 >= .01:
+                    if theta_diff_2 < 0:
+                        string_in = string_in + 'PWML=149, PWMR=50, t=' + str(time_turn_2) + '\n'
+                    if theta_diff_2 > 0:
+                        string_in = string_in + 'PWML=40, PWMR=149, t=' + str(time_turn_2) + '\n'
+
+                # Set up new node
+                newnode = [newx, newy, new_theta, nodes.index(startnode), string_in,0]
+                newnode[5] = startnode[5] + self.finddist(startnode, newnode)
+
+                return newnode
 
         #dist = self.finddist(startnode, targetnode) #make sure startnode and targetnode are actually different
         #if dist != 0:
@@ -323,7 +336,7 @@ class rrt():
                     newnode[3] = nodes.index(i)
         return newnode
 
-    def rrt(self, verbose = False, plotting = False):   #Main implementation of RRT
+    def rrt(self, dynamics, verbose = False, plotting = False):   #Main implementation of RRT
         xg=[]
         yg=[]
         if (self.isArbitrary):
@@ -339,7 +352,7 @@ class rrt():
 
             xnear = self.findclosest(self.nodesList, xrand)     #find the nearest node to the random point
             #xnear = self.findclosestOPT(self.nodesList, xrand)
-            xnew = self.takestep(xnear, xrand, self.nodesList)  #take one step towards the random point from the nearest node and create a new node
+            xnew = self.takestep(xnear, xrand, self.nodesList,dynamics)  #take one step towards the random point from the nearest node and create a new node
             #xnew = self.optimize(self.nodesList,xnew)
             [goalbool, goalpath] = self.checkgoal(self.nodesList, xnew, self.goal)  #check the new node to see if it's in the goal zone
             if (goalbool):
